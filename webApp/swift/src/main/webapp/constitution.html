@@ -3,6 +3,8 @@
    <style type="text/css">
     td, th {border: 1px solid black;}
    </style>
+	<script src="javascript/ckeditor/ckeditor.js"></script>
+	   
 
 <lift:ConstitutionSnippet form="POST">
 
@@ -20,45 +22,224 @@ Message:
 Don't understand, cannot find unclosed tr.
 <br/>
 -->
-Info
+
+<!-- <top:followerInstructions> -->
+<!-- todo: only show these when someone is a follower -->
+<hr />
+<h2>Important tips</h2>
+If you are a follower of, and contributor to, this constitution, read these tips:
+<ul>
+<li>Press the history button, and investigate the performance of your constitution over time, and the effect of your contribution on its score. More tips are to be found in the history view.</li>
+</ul>
+
+<hr />
+
+<!-- </top:followerInstructions> -->
+
+<h2>Properties</h2>
 
 <table>
-   <tr><td>Creationdate:</td>             <td> <top:creationDate /></td>      </tr>
+   <tr><td>Creationdate:</td>             <td><top:creationDate /></td>       </tr>
+   <tr><td>Leader(s):</td>                <td><top:leaders /></td>            </tr>
    <tr><td>Created by:</td>               <td><top:creator /></td>            </tr>
    <tr><td>Description:</td>              <td><top:description /></td>        </tr>
-   <tr><td>Score on property TODO:</td>   <td>TODO</td>                       </tr>
-   <tr><td>Score on property TODO:</td>   <td>TODO</td>                       </tr>
+   <tr><td>Latest release with fluency score:</td>              <td><top:latestRelease /></td>        </tr>
+   <tr><td>Latest fluency score (= score of <top:latestRelease />)</td>             <td><top:fluency /></td>            </tr>
    <tr><td>Number of followers:</td>      <td><top:numberOfFollowers /></td>  </tr>
 </table>
 
 <hr />
 
-General controls
+<h2>General controls</h2>
 <table>
    <tr><td colspan="2"><top:revisionHistory /></td></tr>
    <tr><td>Follow this constitution:</td><td><top:followCheckbox /></td></tr>
-   <tr><td>Don't forget to save the above changes</td><td><top:saveGeneralControlBt /></td></tr> <!-- <&y2012.06.23.17:41:31& COULDDO: update automatically when someone clicked checkboxes etc. But don't know how to do that elegantly now with scala lift> -->
 </table>
-
+<hr />
 <!-- edit subsnippet -->
 <top:edit>
-Mode = edit
+<h2>Mode = edit</h2>
    
 <table>
    <tr><td><top:publishBt /></td><td><a href="TODOexplanation">Publish</a> <!-- <&y2012.06.27.18:28:26& add explanation> -->your addition. Describe what you added: <top:noPublishDescriptionError /></td><td><top:publishDescriptionTextfield /></td></tr>
    <tr><td colspan="3"><hr /></td>                                </tr>
    <tr><td colspan="1">Description</td><td colspan="2"><top:descriptionTextfield /></td>   </tr>
-   <tr><td colspan="3"><top:constitutionEditor /></td>              </tr>
+   <tr><td colspan="3"><top:errorInHtml /> </td></tr>
+   <tr><td colspan="3" id="kippetje"><top:constitutionEditor /></td>              </tr>
    <tr><td colspan="3"><hr /></td>                                </tr>
-   <tr><!-- <td><top:cancelBt /> </td>--><td colspan="3"><top:saveBt /></td><!-- for some next increment </td><top:removeBt /> --></tr>
+   <!-- for some next increment: t<tr> <td><top:cancelBt /> </td><td colspan="3"><top:saveBt /></td>  </td><top:removeBt /> </tr> -->
 </table>
 </top:edit>
 
+<script>
+
+				CKEDITOR.replace( 'edit', {
+					
+				
+					/*
+					 * Style sheet for the contents
+					 */
+					contentsCss: 'javascript/ckeditor/samples/assets/outputxhtml/outputxhtml.css',
+
+					/*
+					 * Special allowed content rules for spans used by
+					 * font face, size, and color buttons.
+					 *
+					 * Note: all rules have been written separately so
+					 * it was possible to specify required classes.
+					 */
+					extraAllowedContent: 'span(!FontColor1);span(!FontColor2);span(!FontColor3);' +
+						'span(!FontColor1BG);span(!FontColor2BG);span(!FontColor3BG);' +
+						'span(!FontComic);span(!FontCourier);span(!FontTimes);' +
+						'span(!FontSmaller);span(!FontLarger);span(!FontSmall);span(!FontBig);span(!FontDouble)',
+
+					/*
+					 * Core styles.
+					 */
+					coreStyles_bold: {
+						element: 'span',
+						attributes: { 'class': 'Bold' }
+					},
+					coreStyles_italic: {
+						element: 'span',
+						attributes: { 'class': 'Italic' }
+					},
+					coreStyles_underline: {
+						element: 'span',
+						attributes: { 'class': 'Underline' }
+					},
+					coreStyles_strike: {
+						element: 'span',
+						attributes: { 'class': 'StrikeThrough' },
+						overrides: 'strike'
+					},
+					coreStyles_subscript: {
+						element: 'span',
+						attributes: { 'class': 'Subscript' },
+						overrides: 'sub'
+					},
+					coreStyles_superscript: {
+						element: 'span',
+						attributes: { 'class': 'Superscript' },
+						overrides: 'sup'
+					},
+
+					/*
+					 * Font face.
+					 */
+
+					// List of fonts available in the toolbar combo. Each font definition is
+					// separated by a semi-colon (;). We are using class names here, so each font
+					// is defined by {Combo Label}/{Class Name}.
+					font_names: 'Comic Sans MS/FontComic;Courier New/FontCourier;Times New Roman/FontTimes',
+
+					// Define the way font elements will be applied to the document. The "span"
+					// element will be used. When a font is selected, the font name defined in the
+					// above list is passed to this definition with the name "Font", being it
+					// injected in the "class" attribute.
+					// We must also instruct the editor to replace span elements that are used to
+					// set the font (Overrides).
+					font_style: {
+						element: 'span',
+						attributes: { 'class': '#(family)' },
+						overrides: [
+							{
+								element: 'span',
+								attributes: {
+									'class': /^Font(?:Comic|Courier|Times)$/
+								}
+							}
+						]
+					},
+
+					/*
+					 * Font sizes.
+					 */
+					fontSize_sizes: 'Smaller/FontSmaller;Larger/FontLarger;8pt/FontSmall;14pt/FontBig;Double Size/FontDouble',
+					fontSize_style: {
+						element: 'span',
+						attributes: { 'class': '#(size)' },
+						overrides: [
+							{
+								element: 'span',
+								attributes: {
+									'class': /^Font(?:Smaller|Larger|Small|Big|Double)$/
+								}
+							}
+						]
+					} ,
+
+					/*
+					 * Font colors.
+					 */
+					colorButton_enableMore: false,
+
+					colorButton_colors: 'FontColor1/FF9900,FontColor2/0066CC,FontColor3/F00',
+					colorButton_foreStyle: {
+						element: 'span',
+						attributes: { 'class': '#(color)' },
+						overrides: [
+							{
+								element: 'span',
+								attributes: {
+									'class': /^FontColor(?:1|2|3)$/
+								}
+							}
+						]
+					},
+
+					colorButton_backStyle: {
+						element: 'span',
+						attributes: { 'class': '#(color)BG' },
+						overrides: [
+							{
+								element: 'span',
+								attributes: {
+									'class': /^FontColor(?:1|2|3)BG$/
+								}
+							}
+						]
+					},
+
+					/*
+					 * Indentation.
+					 */
+					indentClasses: [ 'Indent1', 'Indent2', 'Indent3' ],
+
+					/*
+					 * Paragraph justification.
+					 */
+					justifyClasses: [ 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyFull' ],
+
+					/*
+					 * Styles combo.
+					 */
+					stylesSet: [
+						{ name: 'Strong Emphasis', element: 'strong' },
+						{ name: 'Emphasis', element: 'em' },
+
+						{ name: 'Computer Code', element: 'code' },
+						{ name: 'Keyboard Phrase', element: 'kbd' },
+						{ name: 'Sample Text', element: 'samp' },
+						{ name: 'Variable', element: 'var' },
+
+						{ name: 'Deleted Text', element: 'del' },
+						{ name: 'Inserted Text', element: 'ins' },
+
+						{ name: 'Cited Work', element: 'cite' },
+						{ name: 'Inline Quotation', element: 'q' }
+					]
+					
+				});
+
+			</script>
+
 <!-- view subsnippet -->
 <top:view>
-Mode = view
+<h2>Mode = view</h2>
 <table>
    <tr><td><top:editBt /></td><td></td> </tr>
+   <tr><td>Release candidate</td><td><top:releaseCandidateCb /></td></tr>
    <tr><td colspan="2"><hr />                             </td></tr>
    <tr><td colspan="2"><top:constitutionText /></td>           </tr>
    <tr><td colspan="2"><hr />    </td>                         </tr>

@@ -9,11 +9,16 @@ import _root_.net.liftweb.common._
 import _root_.java.util.Date
 import org.ocbkc.swift.lib._
 import org.ocbkc.swift.OCBKC._
+import org.ocbkc.swift.OCBKC.scoring._
+import org.ocbkc.swift.global._
+import org.ocbkc.swift.general.GUIdisplayHelpers._
 import Helpers._
 import System.err.println
 import org.ocbkc.swift.model._
 import org.eclipse.jgit.revwalk.RevCommit 
 import org.eclipse.jgit.lib.ObjectId
+import org.ocbkc.swift.global.LiftHelpers._
+import _root_.net.liftweb.widgets.tablesorter.TableSorter
 
 class History
 {  val sesCoordLR = sesCoord.is; // extract session coordinator object from session variable.
@@ -28,23 +33,62 @@ class History
    }
 
    def historyTableRows(ns:NodeSeq):NodeSeq =
-   {  println("historyTableRows")
+      { 
+		   println("historyTableRows called")
+		TableSorter("#myTable");
+      
+      implicit val displayIfNone = "-"
       if( const == null ) println("   bug: const == null")
-      const.getHistory.flatMap( revcom => bind( "top", chooseTemplate("top", "row", ns),            
-         "view"               -> SHtml.link("constitutionhistoric?constid=" + const.id + "&commitid=" + revcom.name(), () => Unit, Text("view")),
-         "restore"            -> SHtml.link("restore?constid=" + const.id + "&commitid=" + revcom.name(), () => Unit, Text("restore")),
-         "checkbox"           -> SHtml.checkbox(false, processCheckbox(_, revcom)),
-         "publishDescription" -> Text(revcom.getFullMessage()),
-         "date"               -> Text(revcom.getCommitTime().toString),
-         "author"             -> Text(revcom.getAuthorIdent().toString)
-         ))
+
+      // create headers
+      val header = bind(
+            "top", chooseTemplate("top", "row", ns),
+            "view"               -> emptyNode,
+            "restore"            -> emptyNode,
+            "checkbox"           -> emptyNode,
+            "publishDescription" -> <b>Description</b>,
+            "date"               -> <b>Creation date</b>,
+            "release"          -> <b>Release</b>,
+            "author"             -> <b>Author</b>,
+            "fluency"            -> <b>Fluency</b>
+            )
+
+      // create data rows
+      header ++
+      const.getHistory.flatMap(
+      revcom => 
+      {  val playerId = revcom.getAuthorIdent.getName
+         val df = new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm")
+         val isRelease = const.isRelease(revcom.name)
+
+         bind( "top", chooseTemplate("top", "row", ns),            
+            "view"               -> SHtml.link("constitutionhistoric?constid=" + const.constiId + "&commitid=" + revcom.name, () => Unit, Text("view")),
+            "restore"            -> SHtml.link("restore?constid=" + const.constiId + "&commitid=" + revcom.name, () => Unit, Text("restore")),
+            "checkbox"           -> SHtml.checkbox(false, processCheckbox(_, revcom)),
+            "publishDescription" -> Text(revcom.getFullMessage),
+            "date"               -> Text(df.format(revcom.getCommitTime.toLong*1000).toString),
+            "release"          -> {    println("   release?")
+                                       println("   const.commitIdsReleases: " + const.commitIdsReleases)
+                                       println("   searching revcom.name = " + revcom.name)
+                                       if(isRelease) Text("R" + const.releaseIndex(revcom.name)) else Text("-")
+                                    },
+            "author"             -> Text
+                                    (  Player.find(playerId) match
+                                       {  case Full(player)  => player.swiftDisplayName
+                                          case _             => { println("    bug: Player with id " + playerId + " not found."); "player unknown (this is a bug, please report it)" }
+                                       }
+                                    ),
+            "fluency"             -> { if( isRelease ) optionToUI(ConstiScores.averageFluency(GlobalConstant.AverageFluency.minimalSampleSizePerPlayer, revcom.name, GlobalConstant.AverageFluency.fluencyConstantK)) else "-" }
+            )
+      }
+      )         
    }
 
    def processDiffButton() =
    {  println("processDiffButton called")
       if( checkedCommits.size != 2)
       {  println("   checkedCommits.size != 2, so cannot do diff.")
-         S.redirectTo("history?id=" + const.id) // <&y2012.07.13.19:22:38& add error param here>
+         S.redirectTo("history?id=" + const.constiId) // <&y2012.07.13.19:22:38& add error param here>
       }
 
       checkedCommits match
@@ -67,10 +111,11 @@ class History
    def render(ns: NodeSeq): NodeSeq =
    {  
       bind( "top", ns, 
-            "constname"    -> Text(const.id.toString),
+            "constname"    -> Text(const.constiId.toString),
             "diffBt"       -> SHtml.button("Show difference", processDiffButton),
             "history"      -> historyTableRows(ns) 
           )
+          
    }
 }
 

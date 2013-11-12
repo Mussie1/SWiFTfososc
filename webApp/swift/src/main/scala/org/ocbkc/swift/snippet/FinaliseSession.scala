@@ -15,10 +15,11 @@ import org.ocbkc.swift.model._
 import System.err.println
 
 class FinaliseSession
-{  val sesCoordLR = sesCoord.is; // Extract coord.ses.Core object from SessionVariable LR = Local Reference
+{  val sesCoordLR = sesCoord.is // Extract coord.ses.Core object from SessionVariable LR = Local Reference
 
    def render(ns: NodeSeq): NodeSeq =
    {  //var playerAnswerTF = ""
+      sesCoordLR.URfinaliseSession
       
       def processSubmission() = 
       {  println("processSubmission called")

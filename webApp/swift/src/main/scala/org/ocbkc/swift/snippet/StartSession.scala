@@ -21,10 +21,11 @@ import org.ocbkc.swift.logilang._
 import net.liftweb.json._
 import net.liftweb.json.ext._
 
-object sesCoord extends SessionVar(new ses.Core(/* User, null,*/Round.NotStarted))
+// TODO &y2013.01.28.20:38:57& move to more general place
+object sesCoord extends SessionVar(new ses.Core(/* User, null, Round.NotStarted*/))
 
 class StartSession
-{  val sesCoordLR = sesCoord.is; // Extract coord.ses.Core object from SessionVariable LR = Local Reference
+{  val sesCoordLR = sesCoord.is // Extract coord.ses.Core object from SessionVariable LR = Local Reference
 
    def render(ns: NodeSeq): NodeSeq =
    {  //var playerAnswerTF = ""
@@ -76,7 +77,7 @@ class StartSession
       {  println("processSubmission called")
          // check errors on submission here
          // <&y2011.10.24.17:27:52&>
-         sesCoordLR.URtranslation
+         sesCoordLR.URstartTranslation
 
          // test json serialization
          case class TestPersistency(var val1:String)

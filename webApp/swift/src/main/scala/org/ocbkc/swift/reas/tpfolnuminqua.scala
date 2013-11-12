@@ -81,8 +81,8 @@ Running example:
       println("\n####  creating file: " + fullpath)
       var out:PrintWriter = new PrintWriter(new BufferedWriter(new FileWriter(outFile)))
       out.print(ft_noEqStats_fof)
-      out.flush()
-      out.close()
+      out.flush
+      out.close
 
       // apply eprover
       val eproverResult = Eprover("--cpu-limit=30 --memory-limit=Auto --tstp-format -s --answers " + fullpath)
@@ -108,7 +108,6 @@ Running example:
             {  case Unequal(c1, c2) => !cs.contains(c1) || !cs.contains(c2)
                case _               => false
             }
-
          }
 
          ft_onlyInEqIntroConsStats.removeStats(f(c,_))
@@ -122,10 +121,10 @@ Running example:
          println("\n####  creating file: " + fullpath)
          out = new PrintWriter(new BufferedWriter(new FileWriter(outFile)))
          out.print(ft_onlyInEqIntroConsStats_fof)
-         out.flush()
-         out.close()
+         out.flush
+         out.close
 
-         val paradoxResult = Paradox("--model --verbose 0 ft_onlyInEqIntroConsStats.fof")
+         val paradoxResult = Paradox("--model --verbose 0 " + fullpath)
          println("   result of paradox:\n" + paradoxResult)
          // println("   model size = " + paradoxResult.getModelSize)
          /* Example output paradox:
@@ -148,7 +147,7 @@ Running example:
    +++ END MODEL
    +++ RESULT: Satisfiable
    */
-         paradoxResult.getModelSize // <&y2012.04.28.22:39:34&  dummy return value while developing this function>
+         paradoxResult.getModelSize
       }
       else 0
    }

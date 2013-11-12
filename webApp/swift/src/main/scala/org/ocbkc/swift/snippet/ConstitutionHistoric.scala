@@ -45,7 +45,7 @@ class ConstitutionHistoric
 
 /*      
    def processSomeBtn() =
-   {  S.redirectTo("history?id=" + const.get.id)
+   {  S.redirectTo("history?id=" + const.get.constiId)
    }
 */
    def render(ns: NodeSeq): NodeSeq =
@@ -57,11 +57,17 @@ class ConstitutionHistoric
       val df = new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm")
 
       val answer   = bind( "top", ns, 
-                           "title"              -> Text("Constitution " + const.id.toString),
-                           "revisionDatetime"   -> Text(df.format(historicConst.creationDatetimeMillis*1000).toString),
+                           "title"              -> Text("Constitution " + const.constiId.toString),
+                           "revisionDatetime"   -> Text(df.format(historicConst.creationDatetimePOSIX*1000)),
                            "constitutionText"   -> historicConst.content,
                            "creationDate"       -> Text(df.format(const.creationTime).toString),
-                           "creator"            -> Text(const.creatorUserID.toString)
+                           "creator"            -> Text(
+                                       Player.find(const.creatorUserID) match
+                                       {  case Full(player)  => player.swiftDisplayName
+                                          case _             => { println("    bug: Player with id " + const.creatorUserID + " not found."); "player unknown (this is a bug, please report it)." }
+                                       }
+                                                       )
+
                            // "description"        -> { if( !errorRetrievingConstitution ) Text(constLoc.shortDescription) else emptyNode } <&y2012.07.28.20:23:17& todo>
                      )
       answer

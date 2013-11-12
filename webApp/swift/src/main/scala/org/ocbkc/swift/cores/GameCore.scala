@@ -12,7 +12,7 @@ import scala.sys.process._
 import scala.util.matching._
 import scala.util.matching.Regex._
 import java.io._
-import java.lang._
+//import java.lang._
 import org.ocbkc.swift.parser._
 import net.liftweb.json._
 import net.liftweb.json.ext._
@@ -36,7 +36,8 @@ package gameCoreHelperTypes
 import gameCoreHelperTypes._
 
 trait TraitGameCore
-{  def initialiseCoreContent:CoreContent // <does this really belong here?>
+{  // SHOULDDO: how to initialize a val of this trait in a subclass of this trait? (would like to do that with playerId)
+   def initialiseCoreContent:CoreContent // <does this really belong here?>
    def generateText:String
    def algorithmicDefenceGenerator:FolnuminquaQuery
    def generateQuestionAndCorrectAnswer:QuestionAndCorrectAnswer
@@ -55,16 +56,17 @@ Or perhaps: find out a "design rule of thumb" which allows mixing them in a non-
 
 // helper class for return type of generateQuestionAndCorrectAnswer
 
-class NotUna extends TraitGameCore
+class NotUna(val playerIdInit:Long) extends TraitGameCore
 {  //var translation: String = ""
-   
+   val playerId = playerIdInit
    /* This doesn't only generate the text, but everything: the ctf text, the nl text, the question for the attack, and the answer based on the text. (Note that for the latter, the Clean program actually applies the reasoner to textCTLbyComputer, it is not "baked in".)      
    */
    var cc:CoreContent = null
 
    def initialiseCoreContent:CoreContent = 
    {  // regex must contain exactly 1 group which will be returned as a match.
-      cc = new CoreContent()
+      cc = new CoreContent
+      cc.userId(playerId)
       def extractRegExGroup(regexStr:String, sbc: String):String =
       {  val regex = new Regex(regexStr)
          val m     = regex.findFirstMatchIn(sbc)
@@ -119,8 +121,8 @@ class NotUna extends TraitGameCore
       var sbClean:String = ""
       val ran:Int = currentTimeMillis().toInt
       // <&y2011.11.23.21:08:25& check whether scala Ints indeed fit in Clean ints>
-      err.println("generateNewSessionBundle: currentTimeMillis = " + ran)
-      sbClean = ( ( "../../textgenerator " + ran ) !!)
+      err.println("generateNewSessionBundle: use as random number = " + ran)
+      sbClean = ( ( SWIFTBINARIES + "/textgenerator " + ran ) !!)
       
       cc.textNL = extractNl(sbClean)
       cc.textCTLbyComputer = extractCTL(sbClean)
@@ -148,7 +150,7 @@ class NotUna extends TraitGameCore
       // <&y2012.05.07.18:49:04& rewrite in SWiFT format>
       val bridgeCTL2NLplayerCleanFormat = HurelanBridge.parseAll(HurelanBridge.bridge, cc.bridgeCTL2NLplayer)  match { case HurelanBridge.Success(result,_) => result; case _ => throw new RuntimeException(" Error while parsing bridgeCTL2NLplayer") }
       // <&y2012.01.27.23:02:44& refactor this: put bridgeCTL2NLplayerCleanFormat in the CoreContent model, and check there whether it needs updates or not.>
-      val cmd_output = cleanBridge(WEBAPROOT + "/adGen", cc.bridgeCTL2NLcomputer + NEWLINE + cc.algoDefComputer + NEWLINE + bridgeCTL2NLplayerCleanFormat + NEWLINE) 
+      val cmd_output = cleanBridge(SWIFTBINARIES + "/adGen", cc.bridgeCTL2NLcomputer + NEWLINE + cc.algoDefComputer + NEWLINE + bridgeCTL2NLplayerCleanFormat + NEWLINE) 
       /* Example in scala format (instance of FolnuminquaQuery): Sharpest(NumResPat(Geq(), PatVar(numpatvarname), Var(boundvarname), PredApp(p,consts)))
      */
       val algoDefPlayerSerializedWithLiftJson = cmd_output
@@ -198,7 +200,8 @@ class NotUna extends TraitGameCore
       var outStr:String = ""
 
       val pl = ProcessLogger( o => (outStr += o), e => (errStr += e) )
-      var s: Int = (function !(pl))
+      val procBuilder = sys.process.Process(function, new java.io.File( SWIFTBINARIES ))
+      val s:Int = procBuilder!(pl)
       // Now delete input file, to prevent reareading it in the future... This can be switched of temporarily for debugging purposes: you can then still read the file.
       err.println("  trying to run " + function + " on commandline...")
       err.println("  exit value (0 is good) = " + s)
@@ -242,16 +245,16 @@ class NotUna extends TraitGameCore
       err.println("   answerPlayerCTL = " + cc.answerPlayerCTL)
       val bridgeCTL2NLplayerCleanFormat = HurelanBridge.parseAll(HurelanBridge.bridge, cc.bridgeCTL2NLplayer) match { case HurelanBridge.Success(result,_) => result; case _ => throw new RuntimeException(" Error while parsing bridgeCTL2NLplayer") }
       if( !cc.answerPlayerCTL.equals("Unknown") )
-      {  cc.answerPlayerNL = cleanBridge(WEBAPROOT + "/answerInCTL2NL_CI", cc.answerPlayerCTL + NEWLINE + bridgeCTL2NLplayerCleanFormat + NEWLINE)
+      {  cc.answerPlayerNL = cleanBridge(SWIFTBINARIES + "/answerInCTL2NL_CI", cc.answerPlayerCTL + NEWLINE + bridgeCTL2NLplayerCleanFormat + NEWLINE)
       }
       */
 
       // <&y2012.05.19.21:20:06& as soon as answerInCTL2NL is ported to scala, do the following differently (= translate answerPlayerCTL into answerPlayerNL> 
       cc.answerPlayerNL = cc.answerComputerNL.replaceAll("""(minimally )[0-9]+""", "$1" + cc.answerPlayerCTL) // <_&y2012.05.19.21:11:46& dangerous, if there are other digits in the string...>
 
-      cc.answerPlayerCorrect = cc.answerPlayerNL.equals(cc.answerComputerNL)
+      cc.answerPlayerCorrect(cc.answerPlayerNL.equals(cc.answerComputerNL)).save
 
-      (cc.answerPlayerCorrect, cc.answerPlayerNL, "TODO: reasonercomment (needed?)", cc.answerPlayerCTL)
+      (cc.answerPlayerCorrect.is, cc.answerPlayerNL, "TODO: reasonercomment (needed?)", cc.answerPlayerCTL)
       // <<< EUC
    }
 }

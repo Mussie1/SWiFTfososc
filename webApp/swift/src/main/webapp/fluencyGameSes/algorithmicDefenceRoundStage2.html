@@ -1,0 +1,48 @@
+<lift:surround with="default" at="content">
+	<script src="../javascript/jquery-1.9.1.js"></script>
+<link rel="stylesheet" href="../javascript/jquery-ui.css" />
+<script src="../javascript/jquery-ui.js"></script>
+	<script>
+$(function() {
+$( '#progressbar' ).progressbar({
+  value: 80
+});
+
+</script>
+<lift:AlgorithmicDefenceRoundStage2 form="POST">
+   <style type="text/css">
+    td, th {border: 1px solid black;}
+   </style>
+<h1>Algorithmic Defence Round Stage 2</h1>
+	<div id="progressbar"></div>
+
+	<center>
+	<lift:createProgress.text />
+</center>
+<Br/>
+
+
+<h2>Recap...</h2>
+
+<h3>Question <!-- <top:questionNo />-->in English</h3>
+<top:questionNL /><br /><br />
+<h3>Algorithmic Defence <!-- <top:questionNo />-->in CTL</h3>
+<top:algoDefPlayer />
+
+<h2>Results</h2>
+
+<table border="2">
+   <tr><td/>               <td>Derived from source</td>        <td>Derived from your translation</td> </tr>
+   <tr><td>in CTL</td>     <td><top:answerFromSourceCTL/></td> <td><top:answerFromTransCTL /></td>    </tr>
+   <tr><td>in English</td> <td><top:answerFromSourceNL /></td> <td><top:answerFromTransNL/></td>      </tr>
+</table>
+<top:conclusion />
+
+<br/>
+<top:continue />
+
+</lift:AlgorithmicDefenceRoundStage2>
+
+<br /><br />
+
+</lift:surround>
