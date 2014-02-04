@@ -455,7 +455,7 @@ getHistory.length, commitIdsReleases.length, isRelease
 
    /**
      */
-   def turnReleaseCandidateIntoVirginIfPossible
+   def turnReleaseCandidateIntoVirginIfPossible =
    {  log("turnReleaseCandidateIntoVirginIfPossible called")
       log("   consti = " + constiId)
       releaseStatusPotentialRelease match
