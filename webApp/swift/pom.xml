@@ -328,6 +328,17 @@
 				  </artifactItems>
 		  </configuration>
 		 </plugin>
+		 <plugin>
+    		 <groupId>org.scala-tools</groupId>
+    		 <artifactId>maven-scala-plugin</artifactId>
+     		 <configuration>
+        	 <args>
+          	 <arg>-unchecked</arg>
+          	 <arg>-deprecation</arg>
+         	 <arg>-explaintypes</arg>
+       		 </args>
+    		 </configuration>
+  		 </plugin>
     </plugins>
   </build>
   <reporting>
