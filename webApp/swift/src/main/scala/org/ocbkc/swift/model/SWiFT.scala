@@ -257,7 +257,7 @@ case class CoreContent( var textNL: String,
 }
 
 // "join" of player and corecontent
-case class PlayerCoreContent_join extends LongKeyedMapper[PlayerCoreContent_join] with IdPK
+case class PlayerCoreContent_join() extends LongKeyedMapper[PlayerCoreContent_join] with IdPK
 {  def getSingleton = PlayerCoreContent_join
    object player extends MappedLongForeignKey(this, Player)
    object coreContent extends MappedLongForeignKey(this, CoreContentMetaMapperObj)

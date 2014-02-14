@@ -47,7 +47,7 @@ package ses
 
 //import Round._
 
-case class RoundFluencySession
+case class RoundFluencySession()
 case object RoundTranslation extends RoundFluencySession
 case object RoundBridgeConstruction extends RoundFluencySession
 case object RoundQuestionAttack extends RoundFluencySession
