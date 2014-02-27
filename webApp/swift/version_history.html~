@@ -3,9 +3,9 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="LibreOffice 4.0.4.2 (Linux)">
-	<META NAME="CREATED" CONTENT="20140219;20201700">
-	<META NAME="CHANGED" CONTENT="0;0">
+	<META NAME="GENERATOR" CONTENT="LibreOffice 3.5  (Linux)">
+	<META NAME="CREATED" CONTENT="20130520;16053800">
+	<META NAME="CHANGED" CONTENT="20130808;20530800">
 	<STYLE TYPE="text/css">
 	<!--
 		H2.cjk { font-family: "WenQuanYi Zen Hei" ;}
@@ -23,58 +23,16 @@ will include:</FONT></P>
 <p>
 <H2 CLASS="western"><font color="olive">4users</font></H2>
 <UL>
-	<LI><P STYLE="margin-top: 0.17in"><FONT SIZE=3>Multiple questions in
-	question attack</FONT></P>
-	<LI><P STYLE="margin-top: 0.17in"><FONT SIZE=3>efeLang challenge set
-	improved (first version only creates texts with the form “Akwasi
-	is big.”, and not for example “Akwasi, Jojo and Wizo are each
-	big, and Wizo is also fast.”, this version also contains these
-	things.)</FONT></P>
-	<LI><P STYLE="margin-top: 0.17in"><FONT SIZE=3>Constigame players:
-	constitutional branching support.</FONT></P>
-	<LI><P STYLE="margin-top: 0.17in"><FONT SIZE=3>During the
-	translation round, the shortest translation times will be shown: the
-	personal record and the overall record. This is intended to further
-	motivate the player to be as quickly as possible.</FONT></P>
+	<LI><P STYLE="margin-top: 0.17in"><FONT SIZE=3>Stopwatch running
+	during translation will also display shortest translation time of
+	the player, and of all players.</FONT></P>
 </UL>
-<H2 CLASS="western"><font color="teal">4developers</font></H2>
-<P STYLE="margin-top: 0.17in"><BR><BR>
-</P>
-<HR>
-<H1><A NAME="version0.5.0"></A><font color="teal">Version 0.5.0</font></H1>
-<P>February 19, 2014</P>
-<H2 CLASS="western"><font color="olive">4users</font></H2>
-<UL>
-	<LI><P STYLE="margin-top: 0.17in"><FONT SIZE=3>Most important
-	change: a completely new challenge is integrated: efeLang! The
-	previous challenge (!una) turned out too difficult for most
-	beginning players. This challenge will return in subsequent SWiFT
-	versions in a later playing stage.</FONT></P>
-	<LI><P STYLE="margin-top: 0.17in"><FONT SIZE=3>A progression bar is
-	shown, allowing the player to easily jump back to previous rounds
-	for review and/or corrections, and for an enhanced sense of overview
-	for the player. (However, the rounds do not yet automatically rewind
-	when a previous round is re-edited).</FONT></P>
-</UL>
+</p>
 <H2 CLASS="western" STYLE="margin-top: 0.17in"><font color="olive">4developers</font></H2>
-<UL>
-	<LI><P STYLE="margin-top: 0.17in">The introduction of efeLang is not
-	so easy as it may seem. The previous challenge was still depended on
-	some non-Scala code (Clean). EfeLang is completely written in Scala.
-	Moreover, this has been done in an abstract, generic way. The latter
-	allows other future challenges, with new CTL language and reasoning
-	problems, to be integrated far more easily (at least it is intended
-	to work that way, if it doesn't there is pie.).</P>
-	<LI><P STYLE="margin-top: 0.17in">Moreover, the code is already
-	partially prepared for allowing more than one challenge in the SWiFT
-	game. Considerable refactoring has taken place, among other things,
-	introducing some parameterized types to make it easier to add new
-	challenges with improved reuse.</P>
-</UL>
 <HR>
 <H1><font color="teal"><A NAME="version0.4.0"></A>Version 0.4.0</font></H1>
 <P STYLE="margin-top: 0.17in"><FONT SIZE=4>August 8, 2013</FONT></P>
-<H2 CLASS="western"><font color="olive">4users</font></H2>
+<H2 CLASS="western">4users</H2>
 <UL>
 	<LI><P>Stopwatch running during translation round to stimulate
 	making the duration as short as possible.</P>
