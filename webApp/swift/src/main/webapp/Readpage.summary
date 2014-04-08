@@ -1,0 +1,10 @@
+class Readpage 
+{ def summary (xhtml: NodeSeq) : NodeSeq = User.currentUser match 
+  { case Full(user) => 
+    { val entries : NodeSeq = user.allAccounts match 
+      { case Nil => Text("Please sign up or log in")
+      }
+    }
+  }
+}
+
