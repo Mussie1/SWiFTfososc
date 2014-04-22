@@ -7,9 +7,17 @@
   <p>
 <!--    <div class="1"> -->
 	<p>So, you're here, but now we have a question. Did you REALLY read the consti from beginning to end?!</p>
-	<form action="">
-	<input type="submit" value="No, sorry, you caught me"></button>
-	<input type="submit" value="Yes, I did"></button>
-//I'm not sure about this. Is this all or do I have to create a second lift page, like in the addEntry example?
+	<lift:Truth.answer form="POST">
+	  <entry:submit /><br />
+	  <entry:submit /><br />
+	</lift:Truth.answer>
 <!--    </div> -->
   </p>
+class Truth {
+	def anser (xhtml : NodeSeq) : NodeSeq = {
+	def processEntryAdd () { ... }
+	bind("entry", xhtml,
+	     "submit" -> SHtml.submit("No, you caught me!", processEntryAdd)
+	     "submit" -> SHtml.submit("Yes, of course!", processEntryAdd)
+}
+}
