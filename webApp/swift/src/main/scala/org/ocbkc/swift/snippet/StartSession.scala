@@ -93,7 +93,7 @@ class StartSession
                log("[COULDDO] alternative solution is to redirect to page with  the message.")
             }
             case Some(textNL) => // <&y2014.03.12.16:10:46& hmm, textNL not needed, refactor URtryStartTranslation?>
-            {  S.redirectTo("studyConstiRound.html") 
+            {  if(sesCoordLR.URtryStartSession == 1) S.redirectTo("studyConstiRound.html") else S.redirectTo("constitution1.html")
                JsCmds.Noop
             }
          }
