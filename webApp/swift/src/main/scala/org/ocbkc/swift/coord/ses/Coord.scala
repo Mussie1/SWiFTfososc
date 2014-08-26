@@ -188,7 +188,7 @@ trait CoreTrait[QuerySent__TP <: QuerySent, AnswerLangSent__TP <: CTLsent]
                   "   picked consti = " + (_:Int), 
                   RandomExtras.pickRandomElementFromList(cwpr, randomSeq).get.constiId)
                   )
-                           
+                  S.redirectTo("studyConstiRound.html")         
                   startSessionPreps
                }
             }
