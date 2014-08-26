@@ -188,9 +188,9 @@ trait CoreTrait[QuerySent__TP <: QuerySent, AnswerLangSent__TP <: CTLsent]
                   "   picked consti = " + (_:Int), 
                   RandomExtras.pickRandomElementFromList(cwpr, randomSeq).get.constiId)
                   )
-                  S.redirectTo("studyConstiRound.html")         
                   startSessionPreps
-               }
+                  if(sesCoordLR.URtryStartSession == 1) S.redirectTo("studyConstiRound.html") else S.redirectTo("constitution1.html")
+	       }
             }
          }
          else
