@@ -47,14 +47,7 @@ class TranslationRound
          
          if(transCorrect)
          {  S.redirectTo("bridgeconstruction_efe.html") 
-	     def render(ns: NodeSeq): NodeSeq =
-   		{  SesCoord.is.URconstiStudy
-     		   bind(  
-        	   "top", ns,
-       	 	   "continue"              -> SHtml.submit("Continue", processSubmission)
-     		   )
-  		}
-	    S.redirectTo("fluencyTimeSeriesGraph.html")
+	     
          }   
          else S.redirectTo("translationRound.html")
       }
