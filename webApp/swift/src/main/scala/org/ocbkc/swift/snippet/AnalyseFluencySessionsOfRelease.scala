@@ -65,7 +65,16 @@ class AnalyseFluencySessionsOfRelease
                "averageFluency"              -> { Text(optionToUI(PlayerScores.averageFluency(p).map{ defaultRounding } ) ) },
                "timeSessionPlayed"           -> { Text(df.format(new java.util.Date((sesCoordLR.sessionsPlayedBy(p).head.stopTimeTranslation.get)*1000L)))},
                "masteredChallenge"           -> { Text("not implemented yet") },
-               "averageDurationTranslation"  -> { Text( "" + optionToUI( PlayerScores.averageDurationTranslation(p).averageDurationTranslation ) ) },
+               "averageDurationTranslation"  -> { Text( "" + optionToUI( PlayerScores.averageDurationTranslation(p).averageDurationTranslation
+ def durationFromMillisToHumanReadable(duration:TimeInMillis):String =
+   {  val milliseconds:Long = (duration % 1000L)
+      val seconds = ((duration / 1000L) % 60L)
+      val minutes = ((duration / (1000L*60L)) % 60L)
+      val hours   = ((duration / (1000L*60L*60L)) % 24L)
+      val days    = ( duration / (1000L*60L*60L*24L) )
+      
+      days + "d." + hours + "h." + minutes + "m." + seconds + "s." + milliseconds + "ms ( = " + duration + "ms)"
+   }) ) },
                "shortestTranslationTime"     -> { Text("TODO") }, // I think merge from develop.javascriptdurationclock
                "numberOfValidSessionsPlayed" -> { Text( OCBKCinfoPlayer.numberOfValidSessionsPlayedBy(p).toString ) },
                "numberOfSessionsPlayed"      -> { Text( OCBKCinfoPlayer.numberOfSessionsPlayedBy(p).toString ) },
