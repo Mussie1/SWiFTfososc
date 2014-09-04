@@ -31,7 +31,7 @@ class FinaliseSession
 
       def processCloseSession() =
       {  sesCoordLR.closeSession
-         S.redirectTo("/index.html")
+         S.redirectTo("fluencyTimeSeriesGraph.html")
       }
 
       bind( "form", ns, 
