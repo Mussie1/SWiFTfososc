@@ -10,6 +10,7 @@ import net.liftweb.common.Full
 import org.ocbkc.swift.model._
 import net.liftweb.mapper.By
 import org.ocbkc.swift.general.GUIdisplayHelpers._
+import org.ocbkc.swift.test.TestHelpers._
 
 
 class analyseFluencySessionDetails
@@ -42,7 +43,7 @@ class analyseFluencySessionDetails
                    "sourceText"    -> Text(sesCoordBySession.get.textNL),
                    "textCTLbyPlayer"   -> Text(sesCoordBySession.get.textCTLbyPlayer),
                    "bridgeCTL2NLplayer"-> Text(optionToUI(sesCoordBySession.get.bridgeCTL2NLplayer.map{ _.toString })),
-                   "transTime"     -> Text(sesCoordBySession.get.durationTranslation.get.toString),
+                   "transTime"     -> Text(durationFromMillisToHumanReadable(sesCoordBySession.get.durationTranslation.get.toInt)),
                    "score"         -> Text(optionToUI(PlayerScores.fluencyScore(sesCoordBySession.get).map{ fs => defaultRounding(fs.toDouble) })),
                    "answerCor"     -> Text(sesCoordBySession.get.answerPlayerCorrect.get match { case true => "Yes" case false => "No"}),
                    "interTrans"    ->  SHtml.link("analyseIntermediateTranslations.html?sessionID=" + session_id, () => (), Text("Link"))
