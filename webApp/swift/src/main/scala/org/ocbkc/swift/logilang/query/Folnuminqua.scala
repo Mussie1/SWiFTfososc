@@ -39,7 +39,7 @@ object TestFolnuminquaCLI extends CLIwithFileInput
 
 // each FOL theory is associated with its own list of predicate and constant symbols, I.e. there may be more constants with the same name and id, as long as they are partr
 
-case class FolnuminquaQuery()
+// case class FolnuminquaQuery()
 
 case class FolnuminquaQuery // <&y2013.11.23.22:32:46& rename to PlonumoPat, also see terminologyBaseDocument.tex>
 
