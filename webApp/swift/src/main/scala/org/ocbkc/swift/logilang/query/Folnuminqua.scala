@@ -39,10 +39,11 @@ object TestFolnuminquaCLI extends CLIwithFileInput
 
 // each FOL theory is associated with its own list of predicate and constant symbols, I.e. there may be more constants with the same name and id, as long as they are partr
 
+// <<<<<<< HEAD
 // case class FolnuminquaQuery()
-
+//  =======
 case class FolnuminquaQuery // <&y2013.11.23.22:32:46& rename to PlonumoPat, also see terminologyBaseDocument.tex>
-
+// >>>>>>> mainGitHub/develop
 {  /*
    def serialize =
    {  // implicit val formats = Serialization.formats(NoTypeHints)
@@ -54,7 +55,6 @@ case class FolnuminquaQuery // <&y2013.11.23.22:32:46& rename to PlonumoPat, als
    */
    //override def toString
 }
-
 // NumResPat = Number Retriction Pattern 
 case class Sharpest(numrespat:NumResPat) extends FolnuminquaQuery // I don't assume nesting of quantifiers is allowed, so I don't have to indicate WHICH number variable I want to have the sharpest value of. [&y2012.05.18.11:35:20&: This means that the first variable which appears in the current ] <&y2012.04.22.00:19:39& process this in the definition of folnuminqua>
 {  def serialize =

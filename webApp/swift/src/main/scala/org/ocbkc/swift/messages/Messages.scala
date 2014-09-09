@@ -111,15 +111,7 @@ sentenceOpening(const) + """ lost a follower. Visit the following link to see al
       )
    }
 
-def signUp(const: Constitution, mail:Mail, admin:Admin ) =
-   {  sendMail(mail, admin )
-   Mail(
-None,
-sentenceOpening(const) + " has a new follower!"
-,
-"""Great news... constitution """ + const.constiId + """, has a new follower. """
-)
-}
+
 
    private val how2unfollow =
 """You are receiving this email because you are a follower of the mentioned constitution of the SWiFT game. If you want to unfollow the constitution, please visit the above link.
