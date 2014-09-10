@@ -30,6 +30,16 @@ class PlayerStats
             "numberCorrect"     -> Text("" + SesCoord.sesHis.numberCorrect),
             "percentageCorrect" -> Text("" + optionToUI(SesCoord.sesHis.percentageCorrect))
           )
+   
+   
+      def processGraph() =
+      {  sesCoordLR.currentPlayer
+         S.redirectTo("fluencyTimeSeriesGraph.html")
+      }
+
+      bind( "form", ns, 
+            "stats"      -> SHtml.button("Graph", processGraph)
+          )
    }
 }
 
