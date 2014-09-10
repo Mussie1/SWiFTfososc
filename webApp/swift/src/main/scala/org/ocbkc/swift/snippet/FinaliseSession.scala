@@ -34,9 +34,15 @@ class FinaliseSession
          S.redirectTo("fluencyTimeSeriesGraph.html")
       }
 
+      def processGraph() =
+      {  sesCoordLR.closeSession
+	 S.redirectTo("/fluencyTimeSeriesGraph.html")
+      }
+   
       bind( "form", ns, 
          "playAgainBtn"      -> SHtml.button("Play again", processSubmission),
-         "closeSession"      -> SHtml.submit("Close session", processCloseSession)
+         "closeSession"      -> SHtml.submit("Close session", processCloseSession),
+	 "stats"	     ->	SHtml.submit("Graph", processGraph)
       )
    }
 }
