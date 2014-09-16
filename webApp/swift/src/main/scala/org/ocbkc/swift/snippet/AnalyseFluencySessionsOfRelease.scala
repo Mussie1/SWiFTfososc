@@ -22,7 +22,7 @@ import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.lib.ObjectId
 import org.ocbkc.swift.global.LiftHelpers._
 import _root_.net.liftweb.widgets.tablesorter.TableSorter
-
+import org.ocbkc.swift.test.TestHelpers._
 
 /** Given a release id, gives a summary for each player who played with this release. So, it does not show the separate sessions, but given each player, for example the average score etc.
 */
@@ -65,7 +65,7 @@ class AnalyseFluencySessionsOfRelease
                "averageFluency"              -> { Text(optionToUI(PlayerScores.averageFluency(p).map{ defaultRounding } ) ) },
                "timeSessionPlayed"           -> { Text(df.format(new java.util.Date((sesCoordLR.sessionsPlayedBy(p).head.stopTimeTranslation.get)*1000L)))},
                "masteredChallenge"           -> { Text("not implemented yet") },
-               "averageDurationTranslation"  -> { Text( "" + optionToUI( PlayerScores.averageDurationTranslation(p).averageDurationTranslation ) ) },
+               "averageDurationTranslation"  -> { Text( "" + optionToUI( durationFromMillisToHumanReadable(PlayerScores.averageDurationTranslation(p).averageDurationTranslation.toInt) ) ) },
                "shortestTranslationTime"     -> { Text("TODO") }, // I think merge from develop.javascriptdurationclock
                "numberOfValidSessionsPlayed" -> { Text( OCBKCinfoPlayer.numberOfValidSessionsPlayedBy(p).toString ) },
                "numberOfSessionsPlayed"      -> { Text( OCBKCinfoPlayer.numberOfSessionsPlayedBy(p).toString ) },
