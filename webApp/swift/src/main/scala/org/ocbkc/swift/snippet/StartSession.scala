@@ -93,15 +93,15 @@ class StartSession
                log("[COULDDO] alternative solution is to redirect to page with  the message.")
             }
             case Some(textNL) => // <&y2014.03.12.16:10:46& hmm, textNL not needed, refactor URtryStartTranslation?>
-            {  S.redirectTo("studyConstiRound.html") 
+            {  if(latestRoundFluencySession == 0) S.redirectTo("studyConstiRound.html") else bind( "form", ns, 
+         "startBtn"      -> SHtml.ajaxSubmit("I'm ready!", () => processSubmission)
+      )
                JsCmds.Noop
             }
          }
       }  
 
-      bind( "form", ns, 
-         "startBtn"      -> SHtml.ajaxSubmit("I'm ready!", () => processSubmission)
-      )
+      
    }
 }
 
