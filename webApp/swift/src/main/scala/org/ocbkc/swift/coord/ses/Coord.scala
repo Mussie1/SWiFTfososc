@@ -188,8 +188,7 @@ trait CoreTrait[QuerySent__TP <: QuerySent, AnswerLangSent__TP <: CTLsent]
                   "   picked consti = " + (_:Int), 
                   RandomExtras.pickRandomElementFromList(cwpr, randomSeq).get.constiId)
                   )
-		  def ReadHelp() = {
-		  
+		  		  
                   startSessionPreps
 		  
                }
@@ -541,6 +540,6 @@ class DummyQuerySent extends QuerySent
 - UI is an abstract layer around the actual UI implementation. Or perhaps better: is a kind of API between the Session coordinator and the implementation of the UI. This allows the specific UI solution (web based, OS-based, etc.) to be changed when required. Only the definition of the methods in the UI object have to be changed, without having to make changes to the ses.Core class.
 */
 
-}
+
 }
 }
