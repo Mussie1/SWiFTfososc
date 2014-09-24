@@ -8,6 +8,7 @@ import net.liftweb.util.Helpers._
 import org.ocbkc.swift.OCBKC.{OCBKCinfoPlayer, Constitution}
 import org.ocbkc.swift.OCBKC.scoring.PlayerScores
 import net.liftweb.http.{SHtml, S}
+import org.ocbkc.swift.test.TestHelpers._
 
 import org.ocbkc.swift.model._
 import net.liftweb.mapper.By
@@ -49,7 +50,7 @@ class analyseFluencySessionsPlayer {
             <td>{ session.id.toString }</td>
             <td>{ dateFormat.format(session.stopTimeTranslation.is)   }</td>
             <td>{ "" + optionToUI(PlayerScores.fluencyScore(session).map{ fs => defaultRounding(fs.toDouble) })}</td>
-            <td>{  session.durationTranslation.get.toString  }</td>
+            <td>{  durationFromMillisToHumanReadable(session.durationTranslation.get.toLong)  }</td>
             <td>{  session.answerPlayerCorrect.get match { case true => "Yes" case false => "No"}  }</td>
             <td><a href={ "analyseFluencySessionDetails.html?session_id="+session.id.toString }>Analyse</a></td>
 

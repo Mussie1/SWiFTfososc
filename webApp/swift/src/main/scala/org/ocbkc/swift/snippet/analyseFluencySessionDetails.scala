@@ -43,7 +43,7 @@ class analyseFluencySessionDetails
                    "sourceText"    -> Text(sesCoordBySession.get.textNL),
                    "textCTLbyPlayer"   -> Text(sesCoordBySession.get.textCTLbyPlayer),
                    "bridgeCTL2NLplayer"-> Text(optionToUI(sesCoordBySession.get.bridgeCTL2NLplayer.map{ _.toString })),
-                   "transTime"     -> Text(durationFromMillisToHumanReadable(sesCoordBySession.get.durationTranslation.get.toInt)),
+                   "transTime"     -> Text(durationFromMillisToHumanReadable(sesCoordBySession.get.durationTranslation.get.toLong)),
                    "score"         -> Text(optionToUI(PlayerScores.fluencyScore(sesCoordBySession.get).map{ fs => defaultRounding(fs.toDouble) })),
                    "answerCor"     -> Text(sesCoordBySession.get.answerPlayerCorrect.get match { case true => "Yes" case false => "No"}),
                    "interTrans"    ->  SHtml.link("analyseIntermediateTranslations.html?sessionID=" + session_id, () => (), Text("Link"))
