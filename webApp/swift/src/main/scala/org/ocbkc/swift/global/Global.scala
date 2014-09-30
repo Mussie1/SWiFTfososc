@@ -15,15 +15,29 @@ import org.eclipse.jgit.storage.file._
 import java.io._
 import org.ocbkc.swift.jgit.Translations._
 import org.ocbkc.swift.model._
+import org.ocbkc.swift.global.Logging._
+import _root_.net.liftweb.mapper.{DB, ConnectionManager, Schemifier, DefaultConnectionIdentifier, StandardDBVendor, By}
+import org.ocbkc.swift.OCBKC.Constitution
+import org.apache.commons.io.FileUtils
+import org.ocbkc.swift.jgit.InitialiseJgit
+import net.liftweb.common.{Box,Empty,Failure,Full}
+import org.ocbkc.swift.model._
+import org.ocbkc.generic._
+import org.ocbkc.swift.test._
 
 object GlobalConstant
-{  
- 
-
-   val TEST = true
+{  val TEST = true
    val NEWLINE = System.getProperty("line.separator")
+   val WEBAPP_BASE_DIR =
+   {  val  SWiFTpomDirProp = System.getProperty("SWiFTpom.dir")
+      if(SWiFTpomDirProp != null)
+         SWiFTpomDirProp
+      else
+         System.getProperty("user.dir")
+   }
 
-   val WEBAPP_BASE_DIR = System.getProperty("user.dir") 
+   log("   WEBAPP_BASE_DIR = " + WEBAPP_BASE_DIR)
+
    val OS = System.getProperty("os.name").toLowerCase
 
    
@@ -51,23 +65,31 @@ object GlobalConstant
    val CONSTITUTIONHTMLDIR = "src/main/webapp/constitutions/"
    val PERSISTDIR = "persist" // directory to hold all data required for making app persistent (= survive shutdown and starts)
    val CONSTITUTIONOBJECTDIR = PERSISTDIR + "/constobjs"
-   val CORECONTENTOBJECTDIR = PERSISTDIR + "/corecontentobjs"
+   val SESSIONINFOOBJECTDIR = PERSISTDIR + "/sessionInfoobjs"
    val SWIFTURL = "http://127.0.0.1:8080"
-   val ADMINFIRSTNAME = "Admin"
+   val TESTADMINEMAIL = "admin@test.org"
+   val TESTADMINFIRSTNAME = "AdminTest"
+   val TESTADMINPW = "asdfasdf"
    
    var adminOpt:Option[Player] = None
-   def adminGitUserId = {  println("retrieving adminGitUserId...")
+   def adminGitUserId = {  log("retrieving adminGitUserId...")
                            adminOpt.collect{ case admin => Some(gitUserId(admin)) }
                         }.get // convention is that this method may only be called when an admin account exists, so .get is possible
 
-   val MINsESSIONSb4ACCESS2ALLcONSTIS = 4
+   val MINsESSIONSb4ACCESS2ALLcONSTIS = 2
+   log("[POTENTIAL_BUG]  <&y2014.05.12.14:56:26& shouldn't MINsESSIONSb4ACCESS2ALLcONSTIS be equal to minimalNumberOfSessionsPerPlayer>")
+
    val GIThASHsIZE = 41 + 10 // + 10, I'm not certain it is 41. Better safe than sorry.
    val INITIALISATIOnDATaDIR = WEBAPP_BASE_DIR + "/initialisationData" 
-   val CONSTiALPHaINIT = INITIALISATIOnDATaDIR + "/constitutionAlpha_core"
+   val CONSTI_ALPHA_INIT = INITIALISATIOnDATaDIR + "/efe/constitutionAlpha_core"
+
+   log("[MUSTDO] [POTENTIALBUG] Determine the right MAX_TRANSLATION_LENGTH, or find another way to make it persistent without a max size, just pointer to a file for example. Current solution is or very inefficient (takes a lot of space), or is dangerous (if the size turns out not big enough for some translations). Same holds for MAX_LENGTH_PARSE_ERROR.")
+   val MAX_TRANSLATION_LENGTH = 1024 
+   val MAX_LENGTH_PARSE_ERROR = 1024
 
    // Scoring
 
-   abstract class ScoringConstants // purely intended for commentary purposes.
+   abstract class ScoringConstants // abstract class purely intended for commentary purposes.
 
    object AveragePercentageCorrect extends ScoringConstants
    {  val minimalNumberOfSessionsPerPlayer = 2
@@ -77,8 +99,11 @@ object GlobalConstant
    {  val minimalNumberOfSessionsPerPlayer = AveragePercentageCorrect.minimalNumberOfSessionsPerPlayer
    }
 
+   /** @param minimalSampleSizePerConsti given a consti C, the minimal number of fluency players who used consti C and have a valid fluency score that are required to assign a fluency score to the consti.
+     */
    object AverageFluency extends ScoringConstants
    {  val minimalSampleSizePerPlayer   = AveragePercentageCorrect.minimalNumberOfSessionsPerPlayer
+      val minimalSampleSizePerConsti   = 2
       val fluencyConstantK             = 1000000
    }
 
@@ -93,11 +118,33 @@ object GlobalConstant
    var jgitRepo:Option[Repository] = None   
    var jgit:Option[Git] = None
 
-   // create paths
-   createDirIfNotExists(CONSTITUTIONOBJECTDIR)
-   createDirIfNotExists(CONSTITUTIONHTMLDIR)
-   createDirIfNotExists(CORECONTENTOBJECTDIR)
-   createDirIfNotExists(INITIALISATIOnDATaDIR)
+   initialiseSWiFTdirs
+
+   def initialiseSWiFTdirs
+   {   // create paths
+      createDirIfNotExists(CONSTITUTIONOBJECTDIR)
+      createDirIfNotExists(CONSTITUTIONHTMLDIR)
+      createDirIfNotExists(SESSIONINFOOBJECTDIR)
+      createDirIfNotExists(INITIALISATIOnDATaDIR)
+   }
+
+   /**  If you want to start a running SWiFT instance as if it started with an completely clean database/persistency info. For example used by simulations.
+     *  @todo Move to other object.
+     * 
+     */
+   def clearAndReinitialiseSWiFTdatabase =
+   {  Player.bulkDelete_!!(By(Player.superUser,false))
+      Constitution.removeAll
+
+      FileUtils.deleteDirectory(new File(GlobalConstant.CONSTITUTIONOBJECTDIR))
+      FileUtils.deleteDirectory(new File(GlobalConstant.CONSTITUTIONHTMLDIR))
+      log("[BUG] The following 'FileUtils.deleteDirectory(new File(GlobalConstant.SESSIONINFOOBJECTDIR))' does not seem to have effect??")
+      FileUtils.deleteDirectory(new File(GlobalConstant.SESSIONINFOOBJECTDIR))
+
+      initialiseSWiFTdirs
+
+      InitialiseJgit()
+   }
 
 /** TODO: <&y2012.10.01.15:14:30& refactor: put in general lib>
   * @returns: false dir doesn't exist and could not be created; true: dir exists (if it didn't before, it was created succesfully)
@@ -109,7 +156,7 @@ object GlobalConstant
       if( !outFile.exists )
       {  println("   path " + pathname + " (this is a path to Pure Wisdom) doesn't exist yet")
          val mkdirSuccess = outFile.mkdirs
-         println("   so creating...  succesful: " + { if(mkdirSuccess) "of course, as always, success is my middle name..." else "Fuck it, no... This is ruining my good humour." } )
+         println("   so creating...  succesful: " + { if(mkdirSuccess) "of course, as always, success is my middle name..." else "No... this is ruining my good humour." } )
          mkdirSuccess
       } else
       {  println("   path already exists, dude, you woke me for nothin'... That means free time for me, humble method, I'm gonna continue my dreamy nap...")
@@ -125,16 +172,20 @@ object ScalaHelpers
 /** @todo &y2013.01.20.18:12:52& move this one to a more general place
   */
 object Types
-{  type POSIXtime = Long
-   type DurationInMillis = Long
-   type TimeInMillis = Long
+{  type POSIXtime          = Long
+   type DurationInMillis   = Long
+   type TimeInMillis       = Long
 }
 
 // <&y2012.10.29.17:00:46& improve this, some tests dependent on other ones, now manually selected - should be done automatically>
 object TestSettings
-{  val AUTOLOGIN                       = false
+{  object AUTOLOGIN
+   {  val ON      = false
+      val USER_ID = "2" // 1 is Admin. If you choose another number, make certain that that user exist. For example, if you have deleted the users data, then set CREATETESTUSERBASE to true.
+   }
+
    val AUTOTRANSLATION                 = false // true
-   val CREATETESTUSERBASE              = false // true
+   val CREATETESTUSERBASE              = false // false
    /* <&y2012.09.29.19:44:55& TODO: if constitutions DO exist, don't create new constitutions. Or perhaps better: erase them but not before prompting the developer> */
    val CREATEDUMMYCONSTITUTIONS        = false // true // creates a number of constitutions with several updates and releases, but also some users.
    val STARTJARASIMULATIONDURINGBOOT   = false // Simulate playing with Jara during Boot. After boot normal playing (by real persons) can be continued from there.
@@ -144,7 +195,7 @@ object TestSettings
    // { never change the following manually, they are used by other parts of the program
    var SIMULATEPLAYINGWITHJARARUNNING  = false // simulation process is currently running
    var SIMULATECLOCK                   = false // false, always on when doing tests. <&y2012.12.12.23:32:04& automatically switch this on when needed>
-   var SIMULATEPLAYINGWITHJARA = false
+   var SIMULATEPLAYINGWITHJARA         = false
    // }
    if( CREATEDUMMYCONSTITUTIONS && SIMULATECLOCK ) throw new RuntimeException("CREATEDUMMYCONSTITUTIONS && SIMULATECLOCK are mutually exclusive")
    // vim swap false true: s/false \/\/ true/true \/\/ false/gc
@@ -160,7 +211,19 @@ object Logging
    }
 
    def log(msg:String) =
-   {  println(msg)
+   {  val user_info = Player.currentUser match // <&y2012.08.04.20:16:59& refactor rest of code to use this currentPlayer, instead of doing this again and again....>
+      {  case Full(player) => "[" + player.id + ", " + player.swiftDisplayName + "]"
+         case _            => ""
+      }
+      val datetime = "[" + DateTime.timeInMillis2dateString(SystemWithTesting.currentTimeMillis) + "]"
+      println(datetime + " " + user_info + "   " + msg)
+   }
+
+   /** Log and pass
+     */
+   def logp[T](msg: T => String, obj:T):T =
+   {  log(msg(obj))
+      obj
    }
 }
 
@@ -169,7 +232,11 @@ object LiftHelpers
 
 }
 
-
+object DisplayHelpers
+{  def defaultRounding(d:Double):Double =
+   {  "%.2f".format(d).toDouble
+   }
+}
 
 
 }

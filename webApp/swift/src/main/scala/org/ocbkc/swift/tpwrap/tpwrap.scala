@@ -8,7 +8,7 @@ import org.ocbkc.swift.global.GlobalConstant._
 import System._
 import scala.sys.process._
 import java.io._
-import org.ocbkc.swift.parser.CLIwithFileInput
+import org.ocbkc.swift.test.CLIwithFileInput
 //import org.ocbkc.swift.
 import scala.util.matching._
 import scala.util.matching.Regex._
@@ -78,7 +78,8 @@ object Eprover
          val regex = """# SZS answers Tuple \[\[([^\]]+)\]|_\]""".r // WIW: translate from vim syntax to java syntax: only left: | and ^\ are they correct?
          println("   matched groups:")
          for(matchLoc <- regex.findAllIn(out).matchData; group <- matchLoc.subgroups)
-         { println(group); if (group != null) cs +:= Constant(group) }
+         { println(group); if (group != null) cs +:= Constant(group) 
+	 }
          cs
          
       /* Example output
@@ -138,7 +139,8 @@ object Paradox
          val regex = """% domain size is ([0-9]+)""".r // WIW: translate from vim syntax to java syntax: only left: | and ^\ are they correct?
          println("   matched groups:")
          for(matchLoc <- regex.findAllIn(out).matchData; group <- matchLoc.subgroups)
-         { println(group); if (group != null) result = group.toInt }
+         {  println(group); if (group != null) result = group.toInt 
+	 }
          result
       }
    }

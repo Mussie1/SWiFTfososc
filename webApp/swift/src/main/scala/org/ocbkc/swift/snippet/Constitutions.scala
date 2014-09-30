@@ -20,7 +20,7 @@ import org.ocbkc.swift.global._
 import org.ocbkc.swift.test._
 
 class Constitutions
-{  val sesCoordLR = sesCoord.is; // extract session coordinator object from session variable.
+{  val sesCoordLR = SesCoord.is; // extract session coordinator object from session variable.
 /*
    val headers = List( (0, Sorter("digit")), (2, Sorter("float")), (3, Sorter("shortDate") ))
    
@@ -31,12 +31,12 @@ class Constitutions
    def list(ns: NodeSeq): NodeSeq =
    {  def displayConstis:NodeSeq = 
       {  /*
-         if(sesCoord.Test.initConstitutions) // only for testing, remove after test.
+         if(SesCoord.Test.initConstitutions) // only for testing, remove after test.
          {  val c1 = Constitution.create(0) // test
             c1.shortDescription = "for analytical people"
             val c2 = Constitution.create(0) // test
             c2.shortDescription = "for visual people"
-            sesCoord.Test.initConstitutions = false
+            SesCoord.Test.initConstitutions = false
          }
          */
          if( Constitution.constis.size == 0 )
@@ -54,7 +54,7 @@ class Constitutions
                TopScope,  
                <thead><tr><th>id</th><th>description</th><th>fluency</th><th>APC</th><th>ADT (ms)</th><th>Creation date</th></tr></thead>,
                <tbody>{ Constitution.constis.sortWith((c1,c2) => c1.constiId > c2.constiId ).map(
-                           c => <tr><td><a href={ "constitution?id=" + c.constiId  }>{ c.constiId }</a></td><td>{ c.shortDescription }</td><td>{ optionToUI(ConstiScores.averageFluencyLatestReleaseWithScore(GlobalConstant.AverageFluency.minimalSampleSizePerPlayer, c.constiId, GlobalConstant.AverageFluency.fluencyConstantK).collect{ case afs:(VersionId,Double) => afs._2 } ) }</td><td>{ optionToUI(ConstiScores.averagePercentageCorrect(GlobalConstant.AveragePercentageCorrect.minimalNumberOfSessionsPerPlayer, c.constiId)) }</td><td>{ optionToUI(ConstiScores.averageDurationTranslation(GlobalConstant.AverageDurationTranslation.minimalNumberOfSessionsPerPlayer, c.constiId)) }</td><td>{ df.format(c.creationTime).toString }</td></tr>)
+                           c => <tr><td><a href={ "constitution?id=" + c.constiId  }>{ c.constiId }</a></td><td>{ c.shortDescription }</td><td>{ optionToUI(ConstiScores.averageFluencyLatestReleaseWithScore(c.constiId).collect{ case afs:(VersionId,Double) => afs._2 } ) }</td><td>{ optionToUI(ConstiScores.averagePercentageCorrect(GlobalConstant.AveragePercentageCorrect.minimalNumberOfSessionsPerPlayer, c.constiId)) }</td><td>{ optionToUI(ConstiScores.averageDurationTranslation(GlobalConstant.AverageDurationTranslation.minimalNumberOfSessionsPerPlayer, c.constiId)) }</td><td>{ df.format(c.creationTime).toString }</td></tr>)
                }
                </tbody>
             )

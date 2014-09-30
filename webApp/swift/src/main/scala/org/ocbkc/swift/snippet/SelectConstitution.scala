@@ -16,11 +16,11 @@ import org.ocbkc.swift.general.GUIdisplayHelpers._
 import org.ocbkc.swift.OCBKC.ConstitutionTypes._
 import org.ocbkc.swift.OCBKC.scoring._
 import org.ocbkc.swift.global._
-
+import org.ocbkc.swift.global.Logging._
 
 class SelectConstitution
 {  println("Constructor SelectConstitution called")
-   val sesCoordLR = sesCoord.is // extract session coordinator object from session variable.
+   val sesCoordLR = SesCoord.is // extract session coordinator object from session variable.
    val player = sesCoordLR.currentPlayer
 
    // if the URL contains an id for a constitution, then the choice has been made. So redirect to studyConstitution. Direct redirection ot studuConstitution after the choice cannot be done, because first790623 the field firstChosenConstitution has to be set right, so that SiteMap (see Boot.scala) gives the user access to the studyConstitution link.
@@ -28,12 +28,13 @@ class SelectConstitution
    {  case Full(idLoc)  => {  println("   URL parameter id = " + idLoc)
                               val consti = Constitution.getById(idLoc.toInt) 
                               consti match
-                              { case Some(constLoc)   => {  println("   Found constitution with this id" )
+                              { case Some(constLoc)   => {  log("   Found constitution with this id" )
                                                             sesCoordLR.URchooseFirstConstitution(constLoc.constiId)
                                                             println("   now redirecting player to studyConstitution")
                                                             S.redirectTo("/studyConstitution")
                                                          }
-                                case None             => { S.redirectTo("notfound") }
+                                case None             => { S.redirectTo("notfound") 
+							 }
                               }
                            }
       case _            => Unit // = do nothing, and just continue running the constructor of SelectConstitution
@@ -43,12 +44,12 @@ class SelectConstitution
    def render(ns: NodeSeq): NodeSeq =
    {  def displayConstis:NodeSeq = 
       {  /*
-         if(sesCoord.Test.initConstitutions) // only for testing, remove after test.
+         if(SesCoord.Test.initConstitutions) // only for testing, remove after test.
          {  val c1 = Constitution.create(0) // test
             c1.shortDescription = "for analytical people"
             val c2 = Constitution.create(0) // test
             c2.shortDescription = "for visual people"
-            sesCoord.Test.initConstitutions = false
+            SesCoord.Test.initConstitutions = false
          }
          */
          implicit val displayIfNone = "-"
@@ -68,8 +69,25 @@ class SelectConstitution
                new UnprefixedAttribute("id", Text("constitutionsTable"), new UnprefixedAttribute("class", Text("tablesorter"), Null)),
                TopScope,  
                <thead><tr><th>id</th><th>description</th><th>fluency</th><th>APC</th><th>ADT</th><th>Creation date</th></tr></thead>,
-               <tbody>{ Constitution.constisWithAReleaseOrVirginRelease.sortWith((c1,c2) => c1.constiId > c2.constiId ).map(
-                           c => <tr><td><a href={ "selectConstitution?id=" + c.constiId  }>{ c.constiId }</a></td><td>{ displayNoneIfEmpty(c.shortDescription) }</td><td>{ optionToUI(ConstiScores.averageFluencyLatestReleaseWithScore(GlobalConstant.AverageFluency.minimalSampleSizePerPlayer, c.constiId, GlobalConstant.AverageFluency.fluencyConstantK).collect{ case afs:(VersionId,Double) => afs._2 } ) }</td><td>{ optionToUI(ConstiScores.averagePercentageCorrect(GlobalConstant.AveragePercentageCorrect.minimalNumberOfSessionsPerPlayer, c.constiId)) }</td><td>{ optionToUI(ConstiScores.averageDurationTranslation(GlobalConstant.AverageDurationTranslation.minimalNumberOfSessionsPerPlayer, c.constiId)) }</td><td>{ df.format(c.creationTime).toString }</td></tr>)
+               <tbody>
+	       {  Constitution.constisWithAReleaseOrVirginRelease.sortWith((c1,c2) => c1.constiId > c2.constiId ).map(
+                  c => <tr><td><a href=
+		  {  "selectConstitution?id=" + c.constiId  
+		  }  >
+		     {  c.constiId 
+		     }  </a></td><td>
+			{  displayNoneIfEmpty(c.shortDescription) 
+			}  </td><td>
+			   {  optionToUI(ConstiScores.averageFluencyLatestReleaseWithScore(c.constiId).collect
+			     {  case afs:(VersionId,Double) => afs._2 
+			     } ) 
+			   }  </td><td>
+			      {  optionToUI(ConstiScores.averagePercentageCorrect(GlobalConstant.AveragePercentageCorrect.minimalNumberOfSessionsPerPlayer, c.constiId)) 
+			      }  </td><td>
+				 {  optionToUI(ConstiScores.averageDurationTranslation(GlobalConstant.AverageDurationTranslation.minimalNumberOfSessionsPerPlayer, c.constiId)) 
+				 }  </td><td>
+				    {  df.format(c.creationTime).toString 
+			 	    }  </td></tr>)
                }
                </tbody>
             )

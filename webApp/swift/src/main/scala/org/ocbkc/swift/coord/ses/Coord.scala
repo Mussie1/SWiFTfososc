@@ -1,32 +1,46 @@
+/** Programming protocol (Level 0): the Coord (``Coordinator'') is the controller of the application (inspired by the MCV design pattern (Model Controller View), but possibly not completely equivalent to it).
+  * This means that user requests should never be directly fully handled by GUI components (GUI components = mainly the Lift-snippets), but instead these GUI components should pass on a request to Coord, and if applicable, wait for a response from the Coord. An example is the method URtryStartSession, where UR stands for User Request. The associated snippet StartSession, passes the associated request to URtryStartSession, which in its turn contains the ``logic'' to deal with the situation.
+  *
+  * @todo COULDDO: automatically generate log-error message of which the following is an example:
+  *               "[POTENTIAL_BUG] cannot go to state RoundConstiStudy, because player is not in state RoundStartSession."
+  */
+
 /* <&y2012.04.09.13:58:55& for all scala code: change appending to Lists, because this is highly inefficient (use a ListBuffer instead)>/
 (  importance = 9
 )
 */
 package org.ocbkc.swift.coord
 {  
+import org.ocbkc.swift.global.Logging._
+import org.ocbkc.swift.logilang.query.folnuminqua._
+import org.ocbkc.swift.logilang.query.plofofa._
 import org.ocbkc.swift.logilang.query._
 import org.ocbkc.swift.logilang._
 import org.ocbkc.swift.model._
 import org.ocbkc.swift.general._
 import org.ocbkc.swift.global.TestSettings._
 import org.ocbkc.swift.global.Logging._
+import org.ocbkc.swift.global.ScalaHelpers._
 import org.ocbkc.swift.OCBKC._
 import org.ocbkc.swift.OCBKC.scoring._
 import org.ocbkc.swift.OCBKC.ConstitutionTypes._
 import org.ocbkc.swift.test._
 import System._
-import org.ocbkc.swift.cores.{TraitGameCore, NotUna}
+import org.ocbkc.swift.cores.{TraitGameCore, EfeLang}
 import org.ocbkc.swift.cores.gameCoreHelperTypes._
 import net.liftweb.json._
 import java.io._
+import scala.util.Random
+import org.ocbkc.generic.random._
 
-import org.ocbkc.swift.messages._
-import org.ocbkc.swift.messages.MailMessage._
+import org.ocbkc.swift.messages.MailMessages._
+import org.ocbkc.swift.messages.MailUtils._
 import net.liftweb.util.Mailer
 import net.liftweb.util.Mailer._
 
 import net.liftweb.common.{Box,Empty,Failure,Full}
 import org.ocbkc.swift.model._
+import org.ocbkc.swift.logilang.bridge.brone._
 import _root_.net.liftweb.mapper.By
 import org.ocbkc.swift.global.Types._
 
@@ -46,21 +60,50 @@ package ses
 {
 
 //import Round._
-
+// TODO perhaps refactor: shouldn't this conceptually be part of the model and not the coordinator (controller)?
 case class RoundFluencySession
+case object RoundStartSession extends RoundFluencySession
+case object RoundConstiStudy extends RoundFluencySession // only in first session
 case object RoundTranslation extends RoundFluencySession
 case object RoundBridgeConstruction extends RoundFluencySession
 case object RoundQuestionAttack extends RoundFluencySession
 case object RoundAlgorithmicDefenceStage1 extends RoundFluencySession
 // <&y2013.07.22.17:03:31& rename RoundAlgorithmicDefenceStage2 to ShowFinalResults. It is not a round.>
 case object RoundAlgorithmicDefenceStage2 extends RoundFluencySession
+case object RoundFinaliseSession extends RoundFluencySession
 case object NotInFluencySession extends RoundFluencySession
 
+object RoundFluencySessionInfo
+{  val roundsInOrder = List(RoundStartSession, RoundConstiStudy, RoundTranslation, RoundBridgeConstruction, RoundQuestionAttack, RoundAlgorithmicDefenceStage1, RoundAlgorithmicDefenceStage2, RoundFinaliseSession)
+
+   case class EditBehaviour
+
+   def reviewable(rfs:RoundFluencySession):Boolean =
+   {  rfs match
+      {  case RoundStartSession    => false
+         case RoundFinaliseSession => true
+         case _                    => true
+      }
+   }
+
+   def reEditable(rfs:RoundFluencySession):Boolean =
+   {  rfs match
+      {  case RoundTranslation => false
+         case _ => true
+      }
+   }
+
+
+   // if reEditable then reviewable, build in consistency check.
+}
+
+import RoundFluencySessionInfo._
+
 // in trait, make for easy reuse for creating test simulation sessions.
-trait CoreTrait
-{  var cc: CoreContent = null
+trait CoreTrait[QuerySent__TP <: QuerySent, AnswerLangSent__TP <: CTLsent]
+{  var si: SessionInfo = null
    val sesHis = new SessionHistory()
-   val gameCore: TraitGameCore = new NotUna(currentPlayer.id.get)
+   val gameCore:TraitGameCore[QuerySent__TP, AnswerLangSent__TP]
 
    def currentPlayer:Player
    val currentPlayerId = currentPlayer.id.get
@@ -75,56 +118,141 @@ trait CoreTrait
    }
 
    def URchooseFirstConstitution(player:Player, constiId:ConstiId):Unit =
-   {  player.firstChosenConstitution(constiId).save // note: apply of firstChosenConstitution has been overridden with an apply which does everything needed.
+   {  log("URchooseFirstConstitution")
+      log("   constiId = " + constiId)
+      player.firstChosenConstitution(constiId).save // note: apply of firstChosenConstitution has been overridden with an apply which does everything needed.
    }
 
    /** Set last version of consti with id constiId.
      * @param on, if true it switches on the ReleaseCandidate state for the latest version, otherwise it is switched off.
+     * @returns if on = true: true: release candidate was set, false: release candidate wasn't set, because this version may not be released yet out of a lack of fresh fluency players.
+               if on = false: always returns true.
      */
-   def URsetReleaseCandidate(consti:Constitution, on:Boolean) =
+   def URsetReleaseCandidate(consti:Constitution, on:Boolean):Boolean =
    {  if(on)
-      {  consti.makeLatestVersionReleaseCandidateIfPossible
+      {  val allowed = consti.lastReleaseCommitId match
+         {  case None =>
+            {  true
+            }
+            case Some(lrci) =>
+            {  if(ConstiScores.sampleSizeSufficient4FluencyScore(lrci))
+               {  log("latestReleaseIsEvaluated = true, so this version may be released.")
+                  true
+               }
+               else
+               {  log("latestReleaseIsEvaluated = false, so this version may not be released.")
+                  false
+               }
+            }
+         }
+         if(allowed) consti.makeLatestVersionReleaseCandidateIfPossible
+         allowed
       } else
       {  consti.unmakeCurrentPotentialRelease
+         true
       }
    }
 
-   def URstartTranslation:String =  
-   {  latestRoundFluencySession = RoundTranslation
-      cc = gameCore.initialiseCoreContent
-      cc.startTime(SystemWithTesting.currentTimeMillis).save
-      cc.startTimeTranslation(cc.startTime.is).save
-      cc.textNL
+   def URconstiStudy =
+   {  log("URconstiStudy called")
+      if( latestRoundFluencySession == RoundStartSession )
+         latestRoundFluencySession = RoundConstiStudy
+      else
+      {  log("[POTENTIAL_BUG] cannot go to state RoundConstiStudy, because player is not in state RoundStartSession.")
+      }
+   }
+
+   /** @returns None: the translation may not be started because there aren't releases available which are not yet completely evaluated. The player is put on hold.
+     */
+   def URtryStartSession:Option[String] =
+   {  log("URtryStartSession")
+
+      def startSessionPreps =
+      {  si = gameCore.initialiseSessionInfo
+         latestRoundFluencySession = RoundStartSession
+         Some(si.textNL)
+      }
+
+      if( latestRoundFluencySession == NotInFluencySession )
+      {  if(currentPlayer.firstChosenConstitution.is == -1)
+         {  Constitution.constisWithPlayableReleases match
+            {  case Nil =>
+               {  log("   {| LCD y2014_m08_d06_h12_m44_s36 |} there are no constisWithPlayableReleases, and this player still has no first chosen consti, so session may not start.")  
+                  None
+               }
+               case cwpr =>
+               {  log("Choose a random release for this player, it is the first session for the dudicon!")
+                  val randomSeq = new Random()
+                  URchooseFirstConstitution(
+                  logp( 
+                  "   picked consti = " + (_:Int), 
+                  RandomExtras.pickRandomElementFromList(cwpr, randomSeq).get.constiId)
+                  )
+                           
+                  startSessionPreps
+               }
+            }
+         }
+         else
+         {  startSessionPreps
+         }
+      } else
+      {  log("[BUG] URtryStartSession should not be called when player is in a session. Solve by for example disabling the StartSession page. The player is now in round: " + latestRoundFluencySession)
+         None
+      }
+   }
+
+   def URstartTranslation =
+   {  if( latestRoundFluencySession == RoundConstiStudy)
+      {  log("   gameCore == null " + (gameCore == null) )
+         si.startTime(SystemWithTesting.currentTimeMillis).save
+         si.startTimeTranslation(si.startTime.is).save
+         latestRoundFluencySession = RoundTranslation
+      } else
+      {  log("[POTENTIAL_BUG] cannot go to state RoundTranslation, because player is not in state RoundConstiStudy")
+      }
+      Unit
    }
 
    def URstopTranslation =
    {  log("URstopTranslation called")
-      cc.stopTimeTranslation(SystemWithTesting.currentTimeMillis).save
-      Unit
+      if( latestRoundFluencySession == RoundTranslation )
+      {  si.stopTimeTranslation(SystemWithTesting.currentTimeMillis).save
+         Unit
+         // stay in same round
+      } else
+      {  log("[POTENTIAL_BUG] cannot stop translation, because player is not in state RoundTranslation.")
+      }
    }
 
-   def URstartAlgorithmicDefenceStage1:FolnuminquaQuery =
-   {  latestRoundFluencySession = RoundAlgorithmicDefenceStage1
+   def URstartAlgorithmicDefenceStage1:QuerySent__TP =
+   {  if( latestRoundFluencySession == RoundQuestionAttack )
+      {  latestRoundFluencySession = RoundAlgorithmicDefenceStage1
+      }
       gameCore.algorithmicDefenceGenerator
    }
 
    /** @todo &y2013.05.09.17:31:41& perhaps better move session storing to URstopTranslation.
      */
-   def URstartAlgorithmicDefenceStage2:(scala.Boolean, String, String, String) =
-   {  latestRoundFluencySession = RoundAlgorithmicDefenceStage2
+   def URstartAlgorithmicDefenceStage2:gameCore.AlgorithmicDefenceResult =
+   {  if( latestRoundFluencySession == RoundAlgorithmicDefenceStage1 )
+      {  latestRoundFluencySession = RoundAlgorithmicDefenceStage2
+      }
+      log("[POTENTIAL_BUG] code must only run when latestRoundFluencySession == RoundAlgorithmicDefenceStage1? Or not?")
       val res = gameCore.doAlgorithmicDefence
       // Session completed: store this session for future analysis/score calculations
       // now:Calendar = System.currentTimeMillis()
-      cc.stopTime(System.currentTimeMillis).save
-      sesHis.coreContents ::= cc      
-      cc.serialize // serialize the JSON part
-      PlayerCoreContent_join.create.player(currentPlayer).coreContent(cc).save
+      si.stopTime(System.currentTimeMillis).save
+      sesHis.sessionInfos ::= si
+      si.serialize // serialize the JSON part
+      log("Creating PlayerSessionInfo_join: player = " + currentPlayer.swiftDisplayName + ", session = " + si.id) // this info is also more or less shown by the default LiftMapper logger...
+      PlayerSessionInfo_join.create.player(currentPlayer).sessionInfo(si).save
 
       // send update mail to followers that the score for a release of this constitution is updated
       val fCC = Constitution.getById(currentPlayer.firstChosenConstitution.get).get
       val rOFCC = currentPlayer.releaseOfFirstChosenConstitution.get
       if(accessToConstiGame && ConstiScores.sampleSizeSufficient4FluencyScore(rOFCC)) // note: after accessToConstiGame, the players new sessions are disregarded for calculating the score of the consti release he learned playing the game with, and before it, are all sessions disregarged.
-      {  mailAllFollowersUpdate(fCC, newFluencyScore(fCC, rOFCC))
+      {  sendAllFollowersUpdateMail(fCC, newFluencyScore(fCC, rOFCC))
       }
 
       turnReleaseCandidateIntoVirginIfPossible
@@ -133,7 +261,18 @@ trait CoreTrait
    }
 
    def URfinaliseSession =
-   {  latestRoundFluencySession = NotInFluencySession 
+   {  if( latestRoundFluencySession == RoundAlgorithmicDefenceStage2 )
+      {  latestRoundFluencySession = RoundFinaliseSession
+      } else
+      {  log("[POTENTIAL_BUG] cannot go to state RoundFinaliseSession, because player is not in state RoundAlgorithmicDefenceStage2.")
+      }
+   }
+
+   // rename to URcloseSession
+   def closeSession =
+   {  log("closeSession")
+      if( latestRoundFluencySession == NotInFluencySession ) log("   session was already closed.")
+      latestRoundFluencySession = NotInFluencySession
    }
 
    protected def turnReleaseCandidateIntoVirginIfPossible:Unit =
@@ -154,27 +293,45 @@ trait CoreTrait
    }
 
    def MUnewFluencyScore(consti:Constitution, releaseId:String) =
-   {  mailAllFollowersUpdate(consti, newFluencyScore(consti, releaseId))
+   {  sendAllFollowersUpdateMail(consti, newFluencyScore(consti, releaseId))
    }
 
    def URpublishConsti(consti:Constitution, text:String, description:String) =
-   {  mailOtherFollowersUpdate(consti, MailMessage.newPublication(consti), currentPlayer)
+   {  sendOtherFollowersUpdateMail(consti, newPublication(consti), currentPlayer)
 
       // in case no new versions occurred after the latest release, this publication may immediately become the next release.
       // {
       // <&y2013.02.10.17:13:40& COULDO optimisation here: the check is only necessary if the previous version (version prior to this publication) is a release.>
-      val sufficientForNextRelease = consti.publish(text, description, currentPlayerId.toString)
-     
+      consti.publish(text, description, currentPlayerId.toString)
+
+      log("[SHOULDDO] currently not used MUnewFluencyScore, use it!")               
+      /*
       if( sufficientForNextRelease )
       {  MUnewFluencyScore(consti, ConstiScores.latestReleaseWithFluencyScore(consti.constiId).get)
       }
+      */
       // }
+   }
+
+   /** @todo refactor all round-snippets to call this method. Practically this is not necessary for rounds for which you know they are never or always editable, but "theoretically" it is more correct, because it allows for easy future changes if specifications of the rounds would change.
+   */
+   def editable(rfs:RoundFluencySession):Boolean =
+   {  log("ses.Core.editable called")
+      val ret = roundsInOrder.indexOf(rfs) >= roundsInOrder.indexOf(latestRoundFluencySession)
+      log("   round " + rfs + ": editable = " + ret)
+      ret
    }
 }
 
-class Core(/* val player: User, var text: Text,v ar round: Round */) extends CoreTrait
-{  println("ses.Core.constructor called")
-   
+import org.ocbkc.swift.cores.EfeChallengeTypes._
+import org.ocbkc.swift.logilang.fofa._
+
+class EfeCore(/* val player: User, var text: Text,v ar round: Round */) extends
+/* {  override val gameCore = new EfeLang(currentPlayer.id.get)
+} with */ CoreTrait[EfeQuerySent_rb, EfeAnswerLangSent]
+{  log("ses.Core.constructor called")
+   override val gameCore = new EfeLang(currentPlayer.id.get)
+  
    /* <&y2012.08.08.20:00:20& following MUST be refactored as soon as Mapper framework is understood (see the tryMapperPersistency gitbranch). Now things are only retained during a session, but not accross sessions...> */
    // BEGIN temporary solution for constiSelectionProcedure
    var isFirstTimePlayer:Boolean = true // <&y2012.08.04.19:43:17& set this to true after first session has been completed (or other conditions?)>
@@ -207,11 +364,11 @@ class Core(/* val player: User, var text: Text,v ar round: Round */) extends Cor
       {  case Full(id)  => { prefix = id }
          case _         => { throw new RuntimeException("  No user id found.") }
       }
-      println("   reading corecontent objects from database...")
-      val ccs = PlayerCoreContent_join.findAll(By(PlayerCoreContent_join.player, currentPlayer)).map{ join => join.coreContent.obj.open_! }
+      println("   reading sessionInfo objects from database...")
+      val sis = PlayerSessionInfo_join.findAll(By(PlayerSessionInfo_join.player, currentPlayer)).map{ join => join.sessionInfo.obj.open_! }
 
-      sesHis.coreContents = ccs
-      println("   found " + ccs.length + " CoreContent objects for this player")
+      sesHis.sessionInfos = sis
+      println("   found " + sis.length + " SessionInfo objects for this player")
    }
    // var sesHis:SessionHistory = new SessionHistory 
    // <&y2012.01.02.23:15:26& initialise SessionHistory object with data made persistant in the past>
@@ -234,10 +391,10 @@ class Core(/* val player: User, var text: Text,v ar round: Round */) extends Cor
 /*
    def URstartTranslation:String =  
    {  round = Trans
-      cc = gameCore.initialiseCoreContent
-      cc.startTime(System.currentTimeMillis).save
-      cc.startTimeTranslation(cc.startTime.is).save
-      cc.textNL
+      si = gameCore.initialiseSessionInfo
+      si.startTime(System.currentTimeMillis).save
+      si.startTimeTranslation(si.startTime.is).save
+      si.textNL
    }
 */
 
@@ -257,7 +414,11 @@ class Core(/* val player: User, var text: Text,v ar round: Round */) extends Cor
    }
 
    def URstartQuestionAttack:QuestionAndCorrectAnswer = 
-   {  latestRoundFluencySession = RoundQuestionAttack
+   {  latestRoundFluencySession match
+      {  case RoundBridgeConstruction  => { latestRoundFluencySession = RoundQuestionAttack; true}
+         case _                        => doNothing
+      }
+
       gameCore.generateQuestionAndCorrectAnswer
    }
 /*
@@ -269,26 +430,20 @@ class Core(/* val player: User, var text: Text,v ar round: Round */) extends Cor
    {  val res = gameCore.doAlgorithmicDefence
       // Session completed: store this session for future analysis/score calculations
       // now:Calendar = System.currentTimeMillis()
-      cc.stopTime(System.currentTimeMillis).save
-      sesHis.coreContents ::= cc      
-      cc.serialize // serialize the JSON part
-      PlayerCoreContent_join.create.player(currentPlayer).coreContent(cc).save
+      si.stopTime(System.currentTimeMillis).save
+      sesHis.sessionInfos ::= si      
+      si.serialize // serialize the JSON part
+      PlayerSessionInfo_join.create.player(currentPlayer).sessionInfo(si).save
       res
    }
 */
-// <&y2012.02.21.19:22:56& refactor by using built-in parser of CoreContent.?>
-   def testSyntaxTranslation:String = 
-   {  cc.ParseTextCTLbyPlayer
-      val warn = cc.parseWarningMsgTxtCTLplayer
-      if(!warn.equals("")) warn else cc.parseErrorMsgTextCTLplayer
-   }
+// <&y2012.02.21.19:22:56& refactor by using built-in parser.?>
 
-   def testSyntaxBridge = 
-   {  import scala.util.parsing.combinator.Parsers
-      if( cc.bridgeCTL2NLplayer == "" ) 
-         None
-      else
-         Some(HurelanBridge.parseAll(HurelanBridge.bridge, cc.bridgeCTL2NLplayer))
+   def testSyntaxTranslation:String = 
+   {  gameCore.textCTLbyPlayer_rb_withErrorInfo_and_store match
+      {  case EfeKRdoc_rb.FactoryResult(Some(ctl_rb), _,       warnMsg) => warnMsg
+         case EfeKRdoc_rb.FactoryResult(None,         errMsg,  _)       => errMsg
+      }
    }
 
    def addFollower(p:Player, c:Constitution) =
@@ -306,30 +461,69 @@ class Core(/* val player: User, var text: Text,v ar round: Round */) extends Cor
    }
 /*
    override def MUnewFluencyScore(consti:Constitution) =
-   {  mailAllFollowersUpdate(consti, newFluencyScore(consti))
+   {  sendAllFollowersUpdateMail(consti, newFluencyScore(consti))
    }
 */
+
+
+   /** @todo add error checking: or is this not needed?
+     */
+   def addToPlayerBridge(constant:Constant, entNLname:String)
+   {  val bridgeDoc = gameCore.getOrCreatePlayerBridge
+
+      bridgeDoc.bridgeSents += EntityBridgeSent(constant.name, List(entNLname))
+   }
+
+   def constantsByPlayer:List[Constant] =
+   {  gameCore.textCTLbyPlayer_rb match
+      {  case Some(tcbp_rb) => tcbp_rb.sf.constants
+         case None => List()
+      }
+   }
+
+   def namesOfConstantsByPlayer:List[String] =
+   {  gameCore.textCTLbyPlayer_rb match
+      {  case Some(tcbp_rb) => tcbp_rb.sf.constants.map{ _.name }
+         case None => List()
+      }
+   }
+
+   def sessionsPlayedBy(p:Player):List[SessionInfo] =
+   {  OCBKCinfoPlayer.sessionsPlayedBy(p)
+   }
 }
 
-// simulation of Core for testing purposes
-class CoreSimu(val currentPlayerVal:Player) extends CoreTrait
+
+/** simulation of Core for testing purposes
+  * @todo may need some refactoring: also need a simulated gameCore, now it is tied to one specific game core. After that you can also replace the type parameter with CoreTrait[DummyQuerySent, DummyAnswerLangSent]
+  */
+
+class CoreSimu(val currentPlayerVal:Player) extends CoreTrait[EfeQuerySent_rb, EfeAnswerLangSent]
 {  override def currentPlayer = currentPlayerVal
+   val gameCore = new EfeLang(currentPlayer.id.get)
 
-   // the following is a simplification: it skips playing an actual game, but just determines whether the player has succeeded or not.
+   // the following is a simplification: it skips playing an actual game, but just determines whether the player has succeeded or not. This also means it encompasses both RoundAlgorithmicDefenceStage1 and algorithmicDefenceRoundStage2.
    def URalgorithmicDefenceSimplified(winSession:Boolean, duration:DurationInMillis) =
-   {  val cTM = SystemWithTesting.currentTimeMillis
-      log("   playerHasAccessToAllConstis just before this session = " + OCBKCinfoPlayer.playerHasAccessToAllConstis(currentPlayer))
-      cc.startTime(cTM).save
-      cc.startTimeTranslation(cTM).save
-      cc.stopTime(cTM + duration).save
-      cc.stopTimeTranslation(cTM + duration).save
+   {  if( latestRoundFluencySession == RoundTranslation )
+      {  val cTM = SystemWithTesting.currentTimeMillis
+         log("   playerHasAccessToAllConstis just before this session = " + OCBKCinfoPlayer.playerHasAccessToAllConstis(currentPlayer))
+         si.startTime(cTM).save
+         si.startTimeTranslation(cTM).save
+         si.stopTime(cTM + duration).save
+         si.stopTimeTranslation(cTM + duration).save
 
-      cc.answerPlayerCorrect(winSession).save
-      cc.serialize
-      PlayerCoreContent_join.create.player(currentPlayer).coreContent(cc).save
-      sesHis.coreContents ::= cc  // [SHOULDDO] &y2013.05.10.09:56:36& still needed?
+         si.answerPlayerCorrect(winSession).save
+         si.serialize
 
-      turnReleaseCandidateIntoVirginIfPossible
+         log("Creating PlayerSessionInfo_join: player = " + currentPlayer.swiftDisplayName + ", session = " + si.id)
+         PlayerSessionInfo_join.create.player(currentPlayer).sessionInfo(si).save
+         sesHis.sessionInfos ::= si  // [SHOULDDO] &y2013.05.10.09:56:36& still needed?
+
+         turnReleaseCandidateIntoVirginIfPossible
+         latestRoundFluencySession = RoundAlgorithmicDefenceStage2
+      } else
+      {  log("[BUG]  cannot go to state RoundAlgorithmicDefenceStage1 (and 2), because player is not in state RoundStartSession.")
+      }
    }
 /*
    override def MUnewFluencyScore(consti:Constitution) =
@@ -337,6 +531,8 @@ class CoreSimu(val currentPlayerVal:Player) extends CoreTrait
    }
 */
 }
+
+class DummyQuerySent extends QuerySent
 
 
 /* Assumptions and conventions regarding UI:

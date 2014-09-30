@@ -6,6 +6,7 @@ import _root_.scala.xml._
 import _root_.net.liftweb.util._
 import _root_.net.liftweb.http._
 import _root_.net.liftweb.common._
+import _root_.net.liftweb.http.js._ 
 import _root_.java.util.Date
 import org.ocbkc.swift.lib._
 import org.ocbkc.swift.OCBKC._
@@ -15,6 +16,7 @@ import org.ocbkc.swift.model._
 import org.ocbkc.swift.global._
 import org.ocbkc.swift.global.LiftHelpers._
 import org.ocbkc.swift.global.Logging._
+import org.ocbkc.swift.global.DisplayHelpers._
 import org.ocbkc.swift.coord.ses._
 import org.ocbkc.swift.general.GUIdisplayHelpers._
 import org.ocbkc.swift.OCBKC.scoring._
@@ -24,7 +26,8 @@ import org.xml.sax.SAXParseException
 import org.ocbkc.swift.model.Player
 
 import org.ocbkc.swift.messages._
-import org.ocbkc.swift.messages.MailMessage._
+import org.ocbkc.swift.messages.MailUtils._
+import org.ocbkc.swift.messages.MailMessages._
 
 abstract class Error
 
@@ -40,7 +43,7 @@ case class ContentB4Reload(val constitutionTAcontent:String, val descriptionTFco
 
 class ConstitutionSnippet
 {  println("ConstitutionSnippet constructor called")
-   val sesCoordLR = sesCoord.is // extract session coordinator object from session variable.
+   val sesCoordLR = SesCoord.is // extract session coordinator object from session variable.
    var constitutionTAcontent:String = ""
    var descriptionTFcontent:String = ""
    var publishDescriptionTAcontent:String = ""
@@ -66,6 +69,10 @@ class ConstitutionSnippet
 
       def processHistoryBtn() =
       {  S.redirectTo("history?id=" + const.get.constiId)
+      }
+
+      def analyseScoresBtn() =
+      {  S.redirectTo("analyse/analyseFluencySessionsConsti?consti_id=" + const.get.constiId)
       }
 
 /* &y2013.01.27.18:57:58& Still needed? 
@@ -170,7 +177,7 @@ class ConstitutionSnippet
             {  // first check for syntactic correctness of html file
                constLoc.checkCorrectnessXMLfragment(constitutionTAcontent) match
                {  case constLoc.XMLandErr(Some(xml), _) =>
-                  {  sesCoord.URpublishConsti(constLoc, constitutionTAcontent, publishDescriptionTAcontent)
+                  {  SesCoord.URpublishConsti(constLoc, constitutionTAcontent, publishDescriptionTAcontent)
                   }
                   case constLoc.XMLandErr(None, saxParseExeception)  => { println("   Error in html: " + saxParseExeception.getMessage); errors = ErrorInHtml(saxParseExeception) :: errors }
                }
@@ -187,9 +194,17 @@ class ConstitutionSnippet
       }
 
       def processReleaseCandidateCb(checked:Boolean) =
-      {  log("processReleaseCandidateCb called")
+      {  log("processReleaseCandidateCb called.")
          val constLoc = const.get
-         sesCoordLR.URsetReleaseCandidate(constLoc, checked)
+         if(!sesCoordLR.URsetReleaseCandidate(constLoc, checked))
+         {  log("Uncheck the checkbox, [SHOULDDO:] and give a warning.")
+
+            // documentation on html checkbox:
+            // http://www.w3.org/TR/html-markup/input.checkbox.html 
+            JsCmds.SetElemById("releaseCandidateCb", JsExp.strToJsExp(""), "checked") & JsCmds.Alert("I'm afraid setting release candidate is forbidden... (TODO improve this message).")
+         } else
+         {  JsCmds.Noop
+         }
       }
 
       def processFollowCheckbox(checked:Boolean) =
@@ -197,7 +212,7 @@ class ConstitutionSnippet
          {  val constLoc = const.get
             if( checked && !constLoc.followers.contains(currentUserId) )
             {  sesCoordLR.addFollower(sesCoordLR.currentPlayer, constLoc)
-               mailOtherFollowersUpdate(constLoc, MailMessage.newfollower(constLoc), sesCoordLR.currentPlayer)
+               sendOtherFollowersUpdateMail(constLoc, MailMessages.newfollower(constLoc), sesCoordLR.currentPlayer)
             } else if( !checked && constLoc.followers.contains(currentUserId) )
             {  sesCoordLR.removeFollower(sesCoordLR.currentPlayer, constLoc )
                // <&y2012.06.27.14:00:21& send mail to unfollower to confirm.>
@@ -233,7 +248,7 @@ class ConstitutionSnippet
  
       lazy val constitutionEditor = SHtml.textarea( { errorsLR match
                                                       {  case List() => constLoc.plainContent
-                                                         case _      => { println("   error in html, so prefill constitution editor with text before reload"); contentB4ReloadOpt.get.constitutionTAcontent } // if there is an error, then there is always a contentB4Reload, so you can do the get without problem.
+                                                         case _      => { log("   error in html, so prefill constitution editor with text before reload"); contentB4ReloadOpt.get.constitutionTAcontent } // if there is an error, then there is always a contentB4Reload, so you can do the get without problem.
                                                       }
                                                     }, processConstitutionTA, "rows" -> "10", "style" -> "width: 99%;", "id" -> "edit" 
                                                   )
@@ -250,16 +265,13 @@ class ConstitutionSnippet
      
       val df = new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm")
       implicit val displayIfNone = "-"
-      val fluencyScoreOpt = ConstiScores.averageFluencyLatestReleaseWithScore(
-                              GlobalConstant.AverageFluency.minimalSampleSizePerPlayer, 
-                              constLoc.constiId,
-                              GlobalConstant.AverageFluency.fluencyConstantK
-                           )
+      val fluencyScoreOpt = ConstiScores.averageFluencyLatestReleaseWithScore( constLoc.constiId )
       val latestReleaseIdOpt = fluencyScoreOpt.collect{ case (id,_) => id }
       println("CURRENTUSERID::");
 	println(constLoc.followers.contains(currentUserId));
       val answer   = bind( "top", ns, 
                            "revisionHistory"    -> SHtml.button("History", processHistoryBtn),
+                           "analyseScores"    -> SHtml.button("Analyse Scores", analyseScoresBtn),
                            "followCheckbox"     -> SHtml.ajaxCheckbox(constLoc.followers.contains(currentUserId), selected => processFollowCheckbox(selected)),//SHtml.checkbox(constLoc.followers.contains(currentUserId), processFollowCheckbox),
                            "saveGeneralControlBt"             -> SHtml.button("Save", () => processGeneralSaveBtn),
                            "numberOfFollowers"  -> Text(constLoc.followers.size.toString),
@@ -304,7 +316,7 @@ class ConstitutionSnippet
                                                          }
                                                       }
 
-                                                      SHtml.ajaxCheckbox(constLoc.releaseStatusLastVersion == Some(ReleaseCandidate), selected => processReleaseCandidateCb(selected), accessToReleaseCandidateCb:_*)
+                                                      SHtml.ajaxCheckbox(constLoc.releaseStatusLastVersion == Some(ReleaseCandidate), checked => processReleaseCandidateCb(checked), ("id" -> "releaseCandidateCb" ) :: accessToReleaseCandidateCb:_*)
                                                    }
                                                 )
 
@@ -327,8 +339,7 @@ class ConstitutionSnippet
                            "creationDate"       -> { if( !errorRetrievingConstitution ) Text(df.format(creationDate).toString) else emptyNode },
                            "latestRelease"      -> { Text(optionToUI( latestReleaseIdOpt.collect{ case lr:VersionId => "R" + constLoc.releaseIndex(lr) } ) )
                                                    },
-                           "fluency"            -> { Text(optionToUI(fluencyScoreOpt.collect{ case (_, fs) => fs } ))
-                                                   },
+                           "fluency"            -> { Text(optionToUI(fluencyScoreOpt.collect{ case (_, fs) => fs }.map{ defaultRounding } )) },
                            "description"        -> { if( !errorRetrievingConstitution ) Text(constLoc.shortDescription) else emptyNode }
                      )
       answer
