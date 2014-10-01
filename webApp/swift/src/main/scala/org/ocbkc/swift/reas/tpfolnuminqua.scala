@@ -15,7 +15,7 @@ import org.ocbkc.swift.test.CLIwithFileInput
 /* Assumed is: args(0) = input file, where first line is list of space separated constantnames, the rest is the folminqua file */
 object TestTpFolnuminquaCLI extends CLIwithFileInput
 {  def main(args: Array[String]) =
-   {  if( args.length != 1 ) println("Usage: command filename")
+   {  if( args.length != 1 ) log("Usage: command filename")
       def f(folminquaFile:String):String =
       {  val ft:FOLtheory = Folminqua2FOLtheoryParser.parseAll(Folminqua2FOLtheoryParser.folminquaTheory, folminquaFile) match
          {  case Folminqua2FOLtheoryParser.Success(ftl,_)         => ftl
@@ -63,11 +63,11 @@ Running example:
 
    def query(query:FolnuminquaQuery, ft:FOLtheory):Int =
    {  // &y2012.04.23.17:50:00& Only what matches is currently supported. Thus, warnings that the match statement is not exhaustive is a consequence of deliberate choice.
-      println("####   incoming FOLtheory:\n" + ft)
+      log("####   incoming FOLtheory:\n" + ft)
       val ft_noEqStats = ft.copy // <_&y2012.04.28.22:23:54& how to do cloning in scala?>
       ft_noEqStats.removeStats( { case stat:Equal => true; case stat:Unequal => true; case _ => false } )
-      println("\n####   (in)eq stats removed:\n" + ft_noEqStats)
-      //println("   incoming theory must stay unaffected:\n" + ft)
+      log("\n####   (in)eq stats removed:\n" + ft_noEqStats)
+      //log("   incoming theory must stay unaffected:\n" + ft)
       var ft_noEqStats_fof = ft_noEqStats.exportToTPTPfof
       
       // translate query to fof
@@ -80,13 +80,13 @@ Running example:
          }
       }
       ft_noEqStats_fof += queryFof
-      // println("\n#### added query to theory:\n" + ft_noEqStats_)
-      println("\n####   translated to fof and added query in fof format:\n" + ft_noEqStats_fof)
+      // log("\n#### added query to theory:\n" + ft_noEqStats_)
+      log("\n####   translated to fof and added query in fof format:\n" + ft_noEqStats_fof)
 
       // write to file
       var outFile = new File("ft_noEqStats.fof")
       var fullpath = outFile.getAbsolutePath
-      println("\n####  creating file: " + fullpath)
+      log("\n####  creating file: " + fullpath)
       var out:PrintWriter = new PrintWriter(new BufferedWriter(new FileWriter(outFile)))
       out.print(ft_noEqStats_fof)
       out.flush
@@ -94,23 +94,23 @@ Running example:
 
       // apply eprover
       val eproverResult = Eprover("--cpu-limit=30 --memory-limit=Auto --tstp-format -s --answers " + fullpath)
-      println("####   eprover's result =\n" + eproverResult)
+      log("####   eprover's result =\n" + eproverResult)
       val c:List[Constant] = eproverResult.extractConstants
-      println("   extracted constants = " + c)
+      log("   extracted constants = " + c)
       if(c.length != 0) // needed, because Paradox will produce model size = 1 for a theory which only consists of fof(form0, , introconstants()) <? &y2012.05.07.11:38:43& isn't that incorrect? Ask Paradox developers/Geof Sutcliffe>
       {  // eliminate equality statements with c as preferred constants
-         println("\n####   start eliminate equality statements")
+         log("\n####   start eliminate equality statements")
          val ft_EqInEqIntroConsStats = ft.copy
          val pred = Predicate("introduceconstants", c.length) // create and add introduceconstants statement
          ft_EqInEqIntroConsStats.removeStats( { case stat:Equal => false; case stat:Unequal => false; case _ => true } )
-         println("   create a statement to introduce all constants from C and transform to TPTP fof")
+         log("   create a statement to introduce all constants from C and transform to TPTP fof")
          ft_EqInEqIntroConsStats.addStat(PredApp_FOL(pred, c))
-         println("      first drop everything but (in)equality stats:")
-         println("      ft_EqInEqIntroConsStats =  " + ft_EqInEqIntroConsStats)
-         println("      applying EqualityEliminitor:")
+         log("      first drop everything but (in)equality stats:")
+         log("      ft_EqInEqIntroConsStats =  " + ft_EqInEqIntroConsStats)
+         log("      applying EqualityEliminitor:")
          val ft_onlyInEqIntroConsStats = EqualityEliminator(ft_EqInEqIntroConsStats, c)
 
-         println("\n#### drop all inequality statements which contains at least one constant which is NOT in C.")
+         log("\n#### drop all inequality statements which contains at least one constant which is NOT in C.")
          def f(cs:List[Constant], stat:FOLstatement):Boolean =
          {  stat match
             {  case Unequal(c1, c2) => !cs.contains(c1) || !cs.contains(c2)
@@ -119,22 +119,22 @@ Running example:
          }
 
          ft_onlyInEqIntroConsStats.removeStats(f(c,_))
-         println("   ft_onlyInEqIntroConsStats becomes " + ft_onlyInEqIntroConsStats)
-         println("\n#### apply paradox")
+         log("   ft_onlyInEqIntroConsStats becomes " + ft_onlyInEqIntroConsStats)
+         log("\n#### apply paradox")
          val ft_onlyInEqIntroConsStats_fof = ft_onlyInEqIntroConsStats.exportToTPTPfof
-         println("   ft_onlyInEqIntroConsStats_fof = " + ft_onlyInEqIntroConsStats_fof)
+         log("   ft_onlyInEqIntroConsStats_fof = " + ft_onlyInEqIntroConsStats_fof)
          // write to file
          outFile = new File("ft_onlyInEqIntroConsStats.fof")
          fullpath = outFile.getAbsolutePath
-         println("\n####  creating file: " + fullpath)
+         log("\n####  creating file: " + fullpath)
          out = new PrintWriter(new BufferedWriter(new FileWriter(outFile)))
          out.print(ft_onlyInEqIntroConsStats_fof)
          out.flush
          out.close
 
          val paradoxResult = Paradox("--model --verbose 0 " + fullpath)
-         println("   result of paradox:\n" + paradoxResult)
-         // println("   model size = " + paradoxResult.getModelSize)
+         log("   result of paradox:\n" + paradoxResult)
+         // log("   model size = " + paradoxResult.getModelSize)
          /* Example output paradox:
    +++ PROBLEM: ft_onlyInEqIntroConsStats.fof
    Reading 'ft_onlyInEqIntroConsStats.fof' ... OK

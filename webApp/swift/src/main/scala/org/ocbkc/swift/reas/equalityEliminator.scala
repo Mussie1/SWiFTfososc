@@ -20,7 +20,7 @@ object EqualityEliminatorCLI extends CLIwithFileInput
          val prefConstants = prefConstantNames.map(getConstant(_))
          */
          def getConstant(cn:String) = ft.getConstant(cn) match
-         {  case None    => { println("Constant: " + cn + " not present in theory..."); null }
+         {  case None    => { log("Constant: " + cn + " not present in theory..."); null }
             case Some(c) => c
          }
 
@@ -59,15 +59,15 @@ Running example:
 */
    def apply(ft:FOLtheory, prefCs:List[Constant]):FOLtheory =
    {  //first remove equality statement from ft, and then do the constant replacement in the rest.
-      println("eliminateEqualities")
-      println("   ft was:" + ft)
+      log("eliminateEqualities")
+      log("   ft was:" + ft)
       ft.stats.find( { case s:Equal => true; case _ => false } ) match
-      {  case None => { println("   ft becomes:" + ft); ft }
+      {  case None => { log("   ft becomes:" + ft); ft }
          case Some(Equal(a,b)) => { ft.removeStat(Equal(a,b))  // <&y2012.04.13.09:29:37& can be made more efficient by collecting the index of the Equal stat during the find above.>
                                     if (prefCs.contains(a)) ft.substituteConstant(b,a)
                                     else if (prefCs.contains(b)) ft.substituteConstant(a,b)
                                     else ft.substituteConstant(b,a)
-                                    println("   ft becomes:" + ft)
+                                    log("   ft becomes:" + ft)
                                     apply(ft, prefCs)
                                   }
       }

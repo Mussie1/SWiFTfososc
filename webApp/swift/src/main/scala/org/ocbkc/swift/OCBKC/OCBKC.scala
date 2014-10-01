@@ -326,7 +326,7 @@ getHistory.length, commitIdsReleases.length, isRelease
       // outFile.getParentFile().mkdirs() these should already exist
       // outFile.createNewFile() // <&y2011.12.23.13:39:00& is this required, or is the file automatically created when trying to write to it?>
       val out:PrintWriter = new PrintWriter(new BufferedWriter(new FileWriter(outFile)))
-      out.println(constSer)
+      out.log(constSer)
       out.flush
       out.close
    }
@@ -667,7 +667,7 @@ object Constitution
       outFile.getParentFile().mkdirs() // these should already exist, but do it
       // outFile.createNewFile() // <&y2011.12.23.13:39:00& is this required, or is the file automatically created when trying to write to it?>
       val out:PrintWriter = new PrintWriter(new BufferedWriter(new FileWriter(outFile)))
-      out.println(highestId.toString)
+      out.log(highestId.toString)
       out.flush
       out.close
    }

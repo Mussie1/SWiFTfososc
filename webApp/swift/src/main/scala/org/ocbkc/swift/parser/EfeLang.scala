@@ -25,10 +25,10 @@ class Efe2FOLtheoryParser extends AlphaGroupParser
 {  def efeDocument = repsep(sentence, rep(NL)) <~ rep(NL) ^^ { case sentList =>
       val ft = new FOLtheory
       ft.addStats(sentList) match
-      {  case None => { println("efe2FOLtheoryParser returned:\n" + ft); ft } // successful
+      {  case None => { log("efe2FOLtheoryParser returned:\n" + ft); ft } // successful
          case Some(Tuple2(s,i)) =>
          {  val m = "efe2FOLtheoryParser.efeDocument: my dear, dear beloved, friend, a fatal error occurred, couldn't add one or more statement(s) to the Scala FOLtheory class!"
-            println(m)
+            log(m)
             throw new RuntimeException(m)
          }
       }

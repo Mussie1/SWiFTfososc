@@ -150,16 +150,16 @@ object GlobalConstant
   * @returns: false dir doesn't exist and could not be created; true: dir exists (if it didn't before, it was created succesfully)
   */
    def createDirIfNotExists(pathname:String):Boolean =
-   {  println("createDirIfNotExists called")
-      println("   arg pathname = " + pathname)
+   {  log("createDirIfNotExists called")
+      log("   arg pathname = " + pathname)
       val outFile = new File(pathname + "/")
       if( !outFile.exists )
-      {  println("   path " + pathname + " (this is a path to Pure Wisdom) doesn't exist yet")
+      {  log("   path " + pathname + " (this is a path to Pure Wisdom) doesn't exist yet")
          val mkdirSuccess = outFile.mkdirs
-         println("   so creating...  succesful: " + { if(mkdirSuccess) "of course, as always, success is my middle name..." else "No... this is ruining my good humour." } )
+         log("   so creating...  succesful: " + { if(mkdirSuccess) "of course, as always, success is my middle name..." else "No... this is ruining my good humour." } )
          mkdirSuccess
       } else
-      {  println("   path already exists, dude, you woke me for nothin'... That means free time for me, humble method, I'm gonna continue my dreamy nap...")
+      {  log("   path already exists, dude, you woke me for nothin'... That means free time for me, humble method, I'm gonna continue my dreamy nap...")
          true
       }
    }
@@ -206,7 +206,7 @@ object TestSettings
 
 object Logging
 {  def logAndThrow(msg:String) =
-   {  println(msg)
+   {  log(msg)
       throw new RuntimeException(msg)
    }
 
@@ -216,7 +216,7 @@ object Logging
          case _            => ""
       }
       val datetime = "[" + DateTime.timeInMillis2dateString(SystemWithTesting.currentTimeMillis) + "]"
-      println(datetime + " " + user_info + "   " + msg)
+      log(datetime + " " + user_info + "   " + msg)
    }
 
    /** Log and pass

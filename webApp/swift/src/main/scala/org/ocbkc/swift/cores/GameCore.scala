@@ -387,7 +387,7 @@ class NotUna(val playerIdInit:Long) extends TraitGameCore
          else
             result = errormsg + " no match"
 
-         err.println("NotUna.generateNewSessionBundle.extractRegExGroup: " + result)
+         err.log("NotUna.generateNewSessionBundle.extractRegExGroup: " + result)
          result
       }
 
@@ -425,7 +425,7 @@ class NotUna(val playerIdInit:Long) extends TraitGameCore
       var sbClean:String = ""
       val ran:Int = currentTimeMillis().toInt
       // <&y2011.11.23.21:08:25& check whether scala Ints indeed fit in Clean ints>
-      err.println("generateNewSessionBundle: use as random number = " + ran)
+      err.log("generateNewSessionBundle: use as random number = " + ran)
       sbClean = ( ( SWIFTBINARIES + "/textgenerator " + ran ) !!)
       
       si.textNL = extractNl(sbClean)
@@ -446,7 +446,7 @@ class NotUna(val playerIdInit:Long) extends TraitGameCore
    }
 
    def parseTextCTLbyPlayer:Boolean = 
-   {  println("ParseTextCTLbyPlayer called")
+   {  log("ParseTextCTLbyPlayer called")
       textCTLplayerUpdated4terParsing = false
       parseWarningMsgTxtCTLplayer = if(si.textCTLbyPlayer.equals("")) "Warning: empty file." else ""  // <&y2012.05.19.20:27:13& replace with regex for visually empty file (thus file with only space characters, like space, newline, tab etc.>
 
@@ -460,7 +460,7 @@ class NotUna(val playerIdInit:Long) extends TraitGameCore
             case failMsg@Folminqua2FOLtheoryParser.Failure(_,_)   => {  si.textCTLbyPlayerScalaFormat_      = None
                                                                         si.constantsByPlayer             = None
                                                                         si.predsByPlayer                 = None
-                                                                        println("  parse error: " + failMsg.toString)
+                                                                        log("  parse error: " + failMsg.toString)
                                                                         parseErrorMsgTextCTLplayer = failMsg.toString
                                                                         false 
                                                                      }
@@ -472,7 +472,7 @@ class NotUna(val playerIdInit:Long) extends TraitGameCore
    
       // <&y2011.12.11.19:40:54& make naming consistent (naming for algodef4player) throughout all source code>
       // <&y2011.12.12.16:27:40& Build in test whether all required GameCore properties are set>
-      err.println("algorithmicDefenceGenerator: start")
+      err.log("algorithmicDefenceGenerator: start")
       // <&y2012.05.07.18:49:04& rewrite in SWiFT format>
       val bridgeCTL2NLplayerCleanFormat = HurelanBridge.parseAll(HurelanBridge.bridge, si.bridgeCTL2NLplayer)  match { case HurelanBridge.Success(result,_) => result; case _ => throw new RuntimeException(" Error while parsing bridgeCTL2NLplayer") }
       // <&y2012.01.27.23:02:44& refactor this: put bridgeCTL2NLplayerCleanFormat in the SessionInfo model, and check there whether it needs updates or not.>
@@ -481,7 +481,7 @@ class NotUna(val playerIdInit:Long) extends TraitGameCore
      */
       val algoDefPlayerSerializedWithLiftJson = cmd_output
       implicit val formats = Serialization.formats(ShortTypeHints(List(classOf[Var], classOf[Constant]))) + (new EnumSerializer(ComparisonOperator))
-      println("   trying to deserialize:" + algoDefPlayerSerializedWithLiftJson)
+      log("   trying to deserialize:" + algoDefPlayerSerializedWithLiftJson)
       val algoDefPlayerScalaFormat = Serialization.read[Sharpest](algoDefPlayerSerializedWithLiftJson) // <&y2012.05.16.22:35:10& is it possible to use the name of superclass of the case class Sharpest after the read?>
       si.algoDefPlayer = Some(algoDefPlayerScalaFormat)
       algoDefPlayerScalaFormat
@@ -507,11 +507,11 @@ class NotUna(val playerIdInit:Long) extends TraitGameCore
    }
 
    def cleanBridgeExtended(function:String, input:String):(String,String,String) = 
-   {  // err.println("cleanBridge start")
+   {  // err.log("cleanBridge start")
       val DEBUGCLEANCALLS = true
       var outFile = new File(function + ".clean.in")
 
-      err.println("  creating file: " + outFile.getAbsolutePath)
+      err.log("  creating file: " + outFile.getAbsolutePath)
       val out:PrintWriter = new PrintWriter(new BufferedWriter(new FileWriter(outFile)))
       out.print(input)
       out.flush()
@@ -519,7 +519,7 @@ class NotUna(val playerIdInit:Long) extends TraitGameCore
 
       // delete old output file of clean command
       var inFile = new File(function+".clean.out")
-      err.println("  trying to delete old "+function+".clean.out file (if it exists) " + (if(inFile.delete()) "successful" else "failed"))   
+      err.log("  trying to delete old "+function+".clean.out file (if it exists) " + (if(inFile.delete()) "successful" else "failed"))   
 
       // Run external (Clean) command
       var errStr:String = ""
@@ -529,14 +529,14 @@ class NotUna(val playerIdInit:Long) extends TraitGameCore
       val procBuilder = sys.process.Process(function, new java.io.File( SWIFTBINARIES ))
       val s:Int = procBuilder!(pl)
       // Now delete input file, to prevent reareading it in the future... This can be switched of temporarily for debugging purposes: you can then still read the file.
-      err.println("  trying to run " + function + " on commandline...")
-      err.println("  exit value (0 is good) = " + s)
-      err.println("  errorstream: " + (if(errStr == "") "None" else errStr))
-      err.println("  end errorstream")
-      err.println("  outputstream: " + (if(outStr == "") "None" else outStr))
-      err.println("  end outputstream")
-      if(!DEBUGCLEANCALLS) err.println("  now trying to delete "+function+".clean.in: " + (if(outFile.delete()) "successful" else "failed"))
-      //if(DEBUGCLEANCALLS && !(s == 0)) println("  errors during execution, so trying to delete output file "+function+".clean.out: " + (if(inFile.delete()) "successful" else "hmm, failed")) // normally preserve in and output files for debugging, but delete when there is an error otherwise an old output will be used leading to less transparent runtime bugs.
+      err.log("  trying to run " + function + " on commandline...")
+      err.log("  exit value (0 is good) = " + s)
+      err.log("  errorstream: " + (if(errStr == "") "None" else errStr))
+      err.log("  end errorstream")
+      err.log("  outputstream: " + (if(outStr == "") "None" else outStr))
+      err.log("  end outputstream")
+      if(!DEBUGCLEANCALLS) err.log("  now trying to delete "+function+".clean.in: " + (if(outFile.delete()) "successful" else "failed"))
+      //if(DEBUGCLEANCALLS && !(s == 0)) log("  errors during execution, so trying to delete output file "+function+".clean.out: " + (if(inFile.delete()) "successful" else "hmm, failed")) // normally preserve in and output files for debugging, but delete when there is an error otherwise an old output will be used leading to less transparent runtime bugs.
 
       // Read output of the Clean command
       inFile = new File(function+".clean.out")
@@ -544,15 +544,15 @@ class NotUna(val playerIdInit:Long) extends TraitGameCore
       val output = in.readLine()
       
       // <&y2011.12.12.15:25:59& build in error check: was the file really created afresh, and doesn't it contain errors?>
-      if(DEBUGCLEANCALLS && !(s == 0)) println("  errors during execution, so trying to delete output file "+function+".clean.out: " + (if(inFile.delete()) "successful" else "hmm, failed")) // normally preserve in and output files for debugging, but delete when there is an error otherwise an old output will be used leading to less transparent runtime bugs.
+      if(DEBUGCLEANCALLS && !(s == 0)) log("  errors during execution, so trying to delete output file "+function+".clean.out: " + (if(inFile.delete()) "successful" else "hmm, failed")) // normally preserve in and output files for debugging, but delete when there is an error otherwise an old output will be used leading to less transparent runtime bugs.
       in.close()
       // Now delete output file, to prevent reareading it in the future... This can be switched of temporarily for debugging purposes: you can then still read the file.
-      if(!DEBUGCLEANCALLS) err.println("  now trying to delete "+function+".clean.out: " + (if(inFile.delete()) "successful" else "failed")) // <&y2011.12.21.15:45:38& BUG: this doesn't happen, while it returns "true". Strange...>
+      if(!DEBUGCLEANCALLS) err.log("  now trying to delete "+function+".clean.out: " + (if(inFile.delete()) "successful" else "failed")) // <&y2011.12.21.15:45:38& BUG: this doesn't happen, while it returns "true". Strange...>
       (output, outStr, errStr)
    }
    def doAlgorithmicDefence:(scala.Boolean, String, String, String) =
    {  // 1. do algorithmic defence of player's translation  
-      err.println("start doAlgorithmicDefence")
+      err.log("start doAlgorithmicDefence")
       // >>> SUC
       // <&y2012.05.18.17:00:18& perhaps better to do the parsing in the SessionInfos class at the moment the player's text ctl is provided. You have to parse it anyway to check for syntactic correctness.>
 
@@ -568,7 +568,7 @@ class NotUna(val playerIdInit:Long) extends TraitGameCore
 
       // 2. translate the answer in CTL to NL as well <&y2012.05.19.18:26:13& SHOULDDO do this later, first a quick fix: simply return the answer. The problem is that the reasoner in scala currently doesn't return the answer in the answer lang, but it just returns a number.>
       /*
-      err.println("   answerPlayerCTL = " + si.answerPlayerCTL)
+      err.log("   answerPlayerCTL = " + si.answerPlayerCTL)
       val bridgeCTL2NLplayerCleanFormat = HurelanBridge.parseAll(HurelanBridge.bridge, si.bridgeCTL2NLplayer) match { case HurelanBridge.Success(result,_) => result; case _ => throw new RuntimeException(" Error while parsing bridgeCTL2NLplayer") }
       if( !si.answerPlayerCTL.equals("Unknown") )
       {  si.answerPlayerNL = cleanBridge(SWIFTBINARIES + "/answerInCTL2NL_CI", si.answerPlayerCTL + NEWLINE + bridgeCTL2NLplayerCleanFormat + NEWLINE)

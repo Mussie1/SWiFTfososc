@@ -40,10 +40,10 @@ object InitialiseJgit
       //.findGitDir() // scan up the file system tree <&y2012.06.30.19:51:12& perhaps leave this one out, it SHOULD be in this dir, not in a superdir>
          .build()
       )
-      println("   jgitRepo directory: " + jgitRepo.get.getDirectory )
-      println("   jgitRepo is bare (false is correct): " + jgitRepo.get.isBare())
+      log("   jgitRepo directory: " + jgitRepo.get.getDirectory )
+      log("   jgitRepo is bare (false is correct): " + jgitRepo.get.isBare())
       jgit = Some(new Git(jgitRepo.get)) // <? &y2012.06.30.18:53:23& or isn't this thread safe? I now share one jgit object accross user-sessions (I think... because I instantiate this thing in Boot.scala). Perhaps I should instantiate one per user-session...>
-      println(jgit.get.status.call.getUntracked)
+      log(jgit.get.status.call.getUntracked)
    }
 }
 

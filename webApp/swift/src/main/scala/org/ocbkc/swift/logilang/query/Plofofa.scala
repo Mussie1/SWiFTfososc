@@ -25,13 +25,13 @@ Abbreviation for constitution: consti (const is to much similar to constant).
 // BEGIN TEST
 object TestPlofofaCLI extends CLIwithFileInput
 {  def main(args: Array[String]) =
-   {  if( args.length != 0 ) println("Usage: command, without arguments")
+   {  if( args.length != 0 ) log("Usage: command, without arguments")
       def f:String =
       {  val query = MostInfo(PatVar("s"), Forall(Var("x"), PatVar("s"), PredApp_Plofofa(Predicate("B",1), List(Var("x")))))
          "   query serialized: " + query.serialize
       }
       //applyFunctionToFile(f)
-      println(f)
+      log(f)
    }
 }
 
@@ -81,7 +81,7 @@ case class MostInfo(patVar: PatVar, forallPat: Forall) extends PlofofaPat // I d
       implicit val formats:Formats = Serialization.formats(ShortTypeHints(List(classOf[Var], classOf[Constant])))
       //implicit val formats = Serialization.formats(FullTypeHints(List(classOf[Term]))) + FieldSerializer[Var]() + new EnumSerializer(ComparisonOperator)
       var fqser:String = Serialization.write(this)
-      err.println("  MostInfo statement " + this + "\nserialised to: " + fqser)
+      err.log("  MostInfo statement " + this + "\nserialised to: " + fqser)
    }
 }
 

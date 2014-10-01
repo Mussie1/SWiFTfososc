@@ -32,7 +32,7 @@ object ConstantSubtitutionCLI extends CLIwithFileInput
          }
 
          def getConstant(cn:String) = ft.getConstant(cn) match
-         {  case None    => { println("Constant: " + cn + " not present in theory..."); null }
+         {  case None    => { log("Constant: " + cn + " not present in theory..."); null }
             case Some(c) => c
          }
      
@@ -62,7 +62,7 @@ object FolminquaParserCLI extends CLIwithFileInput
 {  def main(args: Array[String])
    {  applyFunctionToFile(FolminquaParser.parseAll(FolminquaParser.folminquaTheory, _).toString, args(0))
       /*FolminquaParser.parseAll(FolminquaParser.folminquaTheory, lines)) match
-      {  case s@Success(_) => println(s)
+      {  case s@Success(_) => log(s)
          case f@Failure(_,_) => prinln(f)
       }*/
    }
@@ -119,7 +119,7 @@ class Folminqua extends AlphaGroupParser
    def folminquaTheory                 = repsep(folminquaSentence, NL) <~ rep(NL) ^^ (sentences => FolminquaParseResult(printList(sentences.map({ case (sentence,_,_)=>sentence}),"[",",","]"), sentences.map({case (_,constants,_)=>constants}).flatten.distinct, sentences.map({case (_,_,preds)=>preds}).flatten.distinct))
    */
    // def firstOf3[A,B,C](tuple3:(A,B,C)) = match first case { (first,_,_) }
-   def folminquaSentence               = ( eqstat | pre2stat ) ^^ (x=>{println("debug folminquaSentence result: " + x); x})
+   def folminquaSentence               = ( eqstat | pre2stat ) ^^ (x=>{log("debug folminquaSentence result: " + x); x})
    // <&y2012.02.26.01:54:47& solve error here:                           below should be at least one constant, not zero!>
    def eqstat                          = eqpre ~ "(" ~ constantId ~ "," ~ rep1sep(constantId, ",") ~ ")" ^^ { case eqpre ~ "(" ~ constant ~ "," ~ list ~ ")" => ("(FHeqstat (_Tuple2 " + (if (eqpre.equals("equal")) "Eq" else "Neq") + " " + printList((constant::list).map(addLength),"[",",","]") + "))", constant::list, Nil)}
    def eqpre                           = "equal" | "inequal"
@@ -140,17 +140,17 @@ class Folminqua2FOLtheoryParser extends AlphaGroupParser
       repsep(folminquaSentence, NL) <~ rep(NL) ^^ { case sentenceLists => // Be ware: folminquaSentence returns a list of FOLstat instances.
          val ft = new FOLtheory
          ft.addStats(sentenceLists.flatten) match
-         {  case None => { println("folminquaTheory parser returned:\n" + ft); ft } // successful
+         {  case None => { log("folminquaTheory parser returned:\n" + ft); ft } // successful
             case Some(Tuple2(s,i)) => 
             {  val m = "Folminqua2FOLtheoryParser.folminquaTheory: my dear, dear beloved, friend, a fatal error occurred, couldn't add one or more statement(s) to scala FOLtheory class!"
-               println(m)
+               log(m)
                throw new RuntimeException(m)
             }
          }
       }
    
    // def firstOf3[A,B,C](tuple3:(A,B,C)) = match first case { (first,_,_) }
-   def folminquaSentence             = ( eqstat | pre2stat ) // ^^ ( x => {println("debug folminquaSentence result: " + x); x} )
+   def folminquaSentence             = ( eqstat | pre2stat ) // ^^ ( x => {log("debug folminquaSentence result: " + x); x} )
    // <&y2012.02.26.01:54:47& solve error here:                           below should be at least one constant, not zero!>
    def eqstat                      = eqpre ~ "(" ~ constantId ~ "," ~ rep1sep(constantId, ",") ~ ")" ^^ { 
       case eqpre ~ "(" ~ constant ~ "," ~ list ~ ")" => 

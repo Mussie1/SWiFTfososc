@@ -345,7 +345,7 @@ class EfeCore(/* val player: User, var text: Text,v ar round: Round */) extends
    override def currentPlayer = Player.currentUser match // <&y2012.08.04.20:16:59& refactor rest of code to use this currentPlayer, instead of doing this again and again....>
    {  case Full(player) => player
       case _            => 
-      {  println("   ERROR: I'm afraid no player is logged in..."); throw new RuntimeException("   ERROR: I'm afraid no player is logged in...") // there should always be a player if a Coord object is being created.
+      {  log("   ERROR: I'm afraid no player is logged in..."); throw new RuntimeException("   ERROR: I'm afraid no player is logged in...") // there should always be a player if a Coord object is being created.
       }
    } // <&y2012.08.04.19:33:00& perhaps make it so that also this rewrite URL becomes visible in the browser URL input line>
 
@@ -358,17 +358,17 @@ class EfeCore(/* val player: User, var text: Text,v ar round: Round */) extends
    /* var translationTouched:Boolean, var bridgeTouched:Boolean) */
 
    private def initialise = {  // load sessionhistory data from disk for this user (persistency info).
-      println("Core.initialise called")
+      log("Core.initialise called")
       var prefix:String = "" // <&y2012.01.10.09:36:56& coulddo: refactor this, because it is also used when making things persistent>
       Player.currentUserId match // <&y2012.06.23.14:41:16& refactor: put currentuserid in session var, and use that throughout the session-code>
       {  case Full(id)  => { prefix = id }
          case _         => { throw new RuntimeException("  No user id found.") }
       }
-      println("   reading sessionInfo objects from database...")
+      log("   reading sessionInfo objects from database...")
       val sis = PlayerSessionInfo_join.findAll(By(PlayerSessionInfo_join.player, currentPlayer)).map{ join => join.sessionInfo.obj.open_! }
 
       sesHis.sessionInfos = sis
-      println("   found " + sis.length + " SessionInfo objects for this player")
+      log("   found " + sis.length + " SessionInfo objects for this player")
    }
    // var sesHis:SessionHistory = new SessionHistory 
    // <&y2012.01.02.23:15:26& initialise SessionHistory object with data made persistant in the past>

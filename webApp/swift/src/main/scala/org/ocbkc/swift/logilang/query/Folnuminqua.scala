@@ -19,13 +19,13 @@ Abbreviation for constitution: consti (const is to much similar to constant).
 object TestFolnuminquaCLI extends CLIwithFileInput
 {  import ComparisonOperator._
    def main(args: Array[String]) =
-   {  if( args.length != 0 ) println("Usage: command, without arguments")
+   {  if( args.length != 0 ) log("Usage: command, without arguments")
       def f:String =
       {  val query = Sharpest(NumResPat(Geq, PatVar("n"), Var("x"), PredApp(Predicate("p",2),List(Constant("a"), Var("x")))))
          "   query serialized: " + query.serialize
       }
       //applyFunctionToFile(f)
-      println(f)
+      log(f)
    }
 }
 
@@ -45,7 +45,7 @@ case class FolnuminquaQuery // <&y2013.11.23.22:32:46& rename to PlonumoPat, als
       implicit val formats = DefSerialization.formats(NoTypeHints) + new EnumSerializer(ComparisonOperator)
       // implicit val formats = net.liftweb.json.DefaultFormats + new EnumSerializer(ComparisonOperator)
       var fqser:String = Serialization.write(this)
-      err.println("  FolnuminquaQuery serialised to: " + fqser)
+      err.log("  FolnuminquaQuery serialised to: " + fqser)
    }
    */
    //override def toString
@@ -62,7 +62,7 @@ case class Sharpest(numrespat:NumResPat) extends FolnuminquaQuery // I don't ass
       implicit val formats:Formats = Serialization.formats(ShortTypeHints(List(classOf[Var], classOf[Constant]))) + (new EnumSerializer(ComparisonOperator))
       //implicit val formats = Serialization.formats(FullTypeHints(List(classOf[Term]))) + FieldSerializer[Var]() + new EnumSerializer(ComparisonOperator)
       var fqser:String = Serialization.write(this)
-      err.println("  Sharpest statement " + this + "\nserialised to: " + fqser)
+      err.log("  Sharpest statement " + this + "\nserialised to: " + fqser)
    }
 }
 

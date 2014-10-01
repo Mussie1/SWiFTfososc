@@ -64,7 +64,7 @@ object Mail
          Transport.send( message )
       }
       catch (ex:MessagingException){
-         err.println("Cannot send email. " + ex)
+         err.log("Cannot send email. " + ex)
       }
    }
 }

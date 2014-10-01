@@ -132,9 +132,9 @@ case class SessionInfo( var textNL: String,
    var observers:List[TextCTLbyPlayerObserver] = Nil
 
    def durationTranslation:Option[Long] = // <&y2012.10.28.19:58:50& TODO: refactor with checking if startTimeTranslation is defined?>
-   {  println("   durationTranslation called")
-      println("   startTimeTranslation.is == " + startTimeTranslation.is)
-      println("   stopTimeTranslation.is == " + stopTimeTranslation.is)
+   {  log("   durationTranslation called")
+      log("   startTimeTranslation.is == " + startTimeTranslation.is)
+      log("   stopTimeTranslation.is == " + stopTimeTranslation.is)
       if(startTimeTranslation.is == 0 || stopTimeTranslation.is == 0) None else
       {  val result = Some(stopTimeTranslation.is - startTimeTranslation.is)
          log("   durationTranslation = " + result)
@@ -170,7 +170,7 @@ case class SessionInfo( var textNL: String,
 
    /*
    def ParseTextCTLbyPlayerDeprecated:Boolean = 
-   {  println("ParseTextCTLbyPlayer called")
+   {  log("ParseTextCTLbyPlayer called")
       FolminquaParser.parseAll(FolminquaParser.folminquaTheory, textCTLbyPlayer) match 
       {  case FolminquaParser.Success(FolminquaParseResult(cleanform,cons,preds),_) => 
                                                                   {  textCTLbyPlayerCleanFormat_   = Some(cleanform)
@@ -178,7 +178,7 @@ case class SessionInfo( var textNL: String,
                                                                      predsByPlayer                 = Some(preds)
                                                                      true
                                                                   }
-         case f@FolminquaParser.Failure(_,_) => {  println("  parse error: " + f.toString)
+         case f@FolminquaParser.Failure(_,_) => {  log("  parse error: " + f.toString)
                                                    textCTLbyPlayerCleanFormat_   = None
                                                    constantsByPlayer             = None
                                                    predsByPlayer                 = None
@@ -193,19 +193,19 @@ case class SessionInfo( var textNL: String,
    def serialize =
    {  implicit val formats = Serialization.formats(NoTypeHints) + FieldSerializer[BridgeDoc]()
       var siSer:String = Serialization.write(this)
-      println("  sessionInfos serialised to: " + siSer)
+      log("  sessionInfos serialised to: " + siSer)
       // write session to file with unique name, e.g.: playerName/sessionInfo/
 
       var prefix:String = userId.toString
 
       // <&y2012.01.07.17:59:19& MUSTDO: what happens with Player.CurrentUserId, if someone deletes his user account, will the number be reused for another, new, user, if so that would be a problem>
       var outFile = new File(SESSIONINFOOBJECTDIR + "/si" + this.id )
-      println("   creating file: " + outFile.getAbsolutePath)
+      log("   creating file: " + outFile.getAbsolutePath)
       // <&y2012.01.07.18:15:09& in following I get runtime exception: couldn't find file. Perhaps applicatio doesn't have right? Or perhaps I may not use / in filenames>
       outFile.getParentFile().mkdirs()
       // outFile.createNewFile() // <&y2011.12.23.13:39:00& is this required, or is the file automatically created when trying to write to it?>
       val out:PrintWriter = new PrintWriter(new BufferedWriter(new FileWriter(outFile)))
-      out.println(siSer)
+      out.log(siSer)
       out.close
 
       val testDeSer:SessionInfo = Serialization.read[SessionInfo](siSer)

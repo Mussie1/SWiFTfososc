@@ -159,10 +159,10 @@ class FOLtheory extends FOLutils with CTLbase
 
    // <&y2012.04.07.18:08:11& refactor: move to general lib this method
    def addIfNotPresent[A](i:A, ls:List[A]):List[A] =
-   {  //println("addIfNotPresent")
+   {  //log("addIfNotPresent")
       ls.find(item => item == i) match
-      {  case None => { val r = ls :+ i; /* println("   " + r); */ r } // <&y2012.04.09.14:14:36& inefficient, change to listbuffer?>
-         case _    => {  /*println("   " + ls);*/ ls }
+      {  case None => { val r = ls :+ i; /* log("   " + r); */ r } // <&y2012.04.09.14:14:36& inefficient, change to listbuffer?>
+         case _    => {  /*log("   " + ls);*/ ls }
       }
    }
 
@@ -172,9 +172,9 @@ class FOLtheory extends FOLutils with CTLbase
 
    // c1 is replaced with c2, and after that elimated from theory
    def substituteConstant(c1:Constant, c2:Constant) =
-   {  println("substituteConstant")
-      println("   constants in: c1=" + c1 + " c2=" + c2)
-      println("   stats in:" + stats)
+   {  log("substituteConstant")
+      log("   constants in: c1=" + c1 + " c2=" + c2)
+      log("   stats in:" + stats)
       stats = stats.map( 
          { case PredApp_FOL(a, cs)    =>
            {   PredApp_FOL(a, substituteConstantInList(cs))
@@ -185,7 +185,7 @@ class FOLtheory extends FOLutils with CTLbase
          )
       stats = stats.distinct
       constants = constants.filterNot(_ == c1)
-      println("   stats becomes:" + stats)
+      log("   stats becomes:" + stats)
 
       def substituteConstantInList(cs:List[SimpleTerm]) = cs.map( substituteConstantSingle )
 
@@ -339,12 +339,12 @@ object Constant
 {  var constants:List[Constant] = Nil
 
    def apply(name:String):Constant =
-   {  //println("Constant.apply")
+   {  //log("Constant.apply")
       constants.find( c => c.name.equals(name) ) match
-      {  case Some(c) => { /* println("   " + c); */ c }
+      {  case Some(c) => { /* log("   " + c); */ c }
          case None    => { val newc = new Constant(name)
                            constants = constants :+ newc
-                           /* println("   " + constants) */
+                           /* log("   " + constants) */
                            newc
                          }
       }

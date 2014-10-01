@@ -41,7 +41,7 @@ object Player extends Player with MetaMegaProtoUser[Player] {
    }
 
    override def create:Player =
-   {  println("   Player.create called") 
+   {  log("   Player.create called") 
       val p = super.create. constiSelectionProcedureInner(CSP2int(RandomOneToStartWith)).firstChosenConstitution(-1)
       p.save
       p

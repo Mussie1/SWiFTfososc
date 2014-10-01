@@ -46,9 +46,9 @@ import org.ocbkc.swift.global.Logging._
 
 object TestPlofofaProverCLI extends CLIwithFileInput
 {  def main(args: Array[String]) =
-   {  println("SWiFTpom.dir == " + System.getProperty("SWiFTpom.dir"))
+   {  log("SWiFTpom.dir == " + System.getProperty("SWiFTpom.dir"))
 
-      if( args.length != 0 ) println("Usage: command (without parameters)")
+      if( args.length != 0 ) log("Usage: command (without parameters)")
       else
       {  val predicateB = Predicate("B",1)
          val predicateF = Predicate("F",1)
@@ -61,7 +61,7 @@ object TestPlofofaProverCLI extends CLIwithFileInput
          val result = Prover.query(plofofaQuery, folTheory)
       }
       /*
-      if( args.length != 1 ) println("Usage: command filename")
+      if( args.length != 1 ) log("Usage: command filename")
       def f(folminquaFile:String):String =
       {  val ft:FOLtheory = Folminqua2FOLtheoryParser.parseAll(Folminqua2FOLtheoryParser.folminquaTheory, folminquaFile) match
          {  case Folminqua2FOLtheoryParser.Success(ftl,_)         => ftl
@@ -123,12 +123,12 @@ object Prover extends reas.ProverTrait
          }
       }
       val ftAndQueryFof = ftFof + queryFof
-      println("\n####   FOLtheory translated to fof and added query in fof format:\n" + ftAndQueryFof)
+      log("\n####   FOLtheory translated to fof and added query in fof format:\n" + ftAndQueryFof)
 
       // write to file
       var outFile = new File("ft.fof")
       var fullpath = outFile.getAbsolutePath
-      println("\n####  creating file: " + fullpath)
+      log("\n####  creating file: " + fullpath)
       var out:PrintWriter = new PrintWriter(new BufferedWriter(new FileWriter(outFile)))
       out.print(ftAndQueryFof)
       out.flush
@@ -136,7 +136,7 @@ object Prover extends reas.ProverTrait
 
       // apply eprover
       val eproverResult = Eprover("--cpu-limit=30 --memory-limit=Auto --tstp-format -s --answers " + fullpath)
-      println("####   eprover's result =\n" + eproverResult)
+      log("####   eprover's result =\n" + eproverResult)
 
       val result = queryParam match
       {  case MostInfo(patVar, plofofa.Forall(forallVar:Var, setPatVar:PatVar, PredApp_Plofofa(pred, terms))) =>
