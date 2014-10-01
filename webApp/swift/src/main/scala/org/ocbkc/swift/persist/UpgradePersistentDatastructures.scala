@@ -86,7 +86,7 @@ object PersDataUpgrader4SWiFT extends PersDataUpgrader(Nil) //Test.persDataUpgra
    {  log("writePersistentDataMainVersionToFile called")
       log("   writing to file persistentDataMainVersion = " + persistentDataMainVersion.get)
       val out:PrintWriter = new PrintWriter(new BufferedWriter(new FileWriter(file)))
-      out.println(persistentDataMainVersion.get)
+      out.log(persistentDataMainVersion.get)
       out.flush
       out.close
    }
