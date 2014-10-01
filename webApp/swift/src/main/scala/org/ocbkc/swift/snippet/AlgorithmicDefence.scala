@@ -17,7 +17,7 @@ class AlgorithmicDefenceRound
 
    def render(ns: NodeSeq): NodeSeq =
    {  def processSubmission() = 
-      {  println("processSubmission called")
+      {  log("processSubmission called")
          // check errors on submission here
          // <&y2011.10.23.17:49:39&>
          S.redirectTo("algorithmicDefenceRoundStage2.html") 

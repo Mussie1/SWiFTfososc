@@ -22,12 +22,12 @@ class createProgress
 {  //Please implemt RoundAlgorithmicDefenceStage2
 
    def text:NodeSeq = 
-   {  println("createprogressbar is called");
+   {  log("createprogressbar is called");
       val x = S.attr("w_page") openOr "geen param :("
       val lrfs = SesCoord.is.latestRoundFluencySession
-      //println(SesCoord.is.latest);
+      //log(SesCoord.is.latest);
 
-      println("   latestRoundFluencySession = " + lrfs)
+      log("   latestRoundFluencySession = " + lrfs)
       //TemplateFinder.findAnyTemplate(List("templates-hidden", "progressbar")).open_!
       // <&y2013.09.06.20:48:47& COULDDO refactor: get index from List(RoundTranslation, RoundBridgeConstruction, ...) is more compact coding and less shot gun surgery pattern.>
 

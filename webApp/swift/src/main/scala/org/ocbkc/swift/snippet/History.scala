@@ -26,18 +26,18 @@ class History
 
    val const:Constitution = S.param("id") match
    {  case Full(idLoc)  => Constitution.getById(idLoc.toInt) match
-                           { case Some(constLoc)   => { println("   Constitution id:" + idLoc); constLoc }
+                           { case Some(constLoc)   => { log("   Constitution id:" + idLoc); constLoc }
                              case None             => { S.redirectTo("notfound.html") }
                            }
       case _            => S.redirectTo("constitutions")
    }
 
    def historyTableRows(ns:NodeSeq):NodeSeq =
-   {  println("historyTableRows called")
+   {  log("historyTableRows called")
       TableSorter("#myTable");
       
       implicit val displayIfNone = "-"
-      if( const == null ) println("   bug: const == null")
+      if( const == null ) log("   bug: const == null")
 
       // create headers
       val header = bind(
@@ -66,15 +66,15 @@ class History
             "checkbox"           -> SHtml.checkbox(false, processCheckbox(_, revcom)),
             "publishDescription" -> Text(revcom.getFullMessage),
             "date"               -> Text(df.format(revcom.getCommitTime.toLong*1000).toString),
-            "release"          -> {    println("   release?")
-                                       println("   const.commitIdsReleases: " + const.commitIdsReleases)
-                                       println("   searching revcom.name = " + revcom.name)
+            "release"          -> {    log("   release?")
+                                       log("   const.commitIdsReleases: " + const.commitIdsReleases)
+                                       log("   searching revcom.name = " + revcom.name)
                                        if(isRelease) Text("R" + const.releaseIndex(revcom.name)) else Text("-")
                                   },
             "author"             -> Text
                                     (  Player.find(playerId) match
                                        {  case Full(player)  => player.swiftDisplayName
-                                          case _             => { println("    bug: Player with id " + playerId + " not found."); "player unknown (this is a bug, please report it)" 
+                                          case _             => { log("    bug: Player with id " + playerId + " not found."); "player unknown (this is a bug, please report it)" 
                                                                 }
                                        }
                                     ),
@@ -85,9 +85,9 @@ class History
    }
 
    def processDiffButton() =
-   {  println("processDiffButton called")
+   {  log("processDiffButton called")
       if( checkedCommits.size != 2)
-      {  println("   checkedCommits.size != 2, so cannot do diff.")
+      {  log("   checkedCommits.size != 2, so cannot do diff.")
          S.redirectTo("history?id=" + const.constiId) // <&y2012.07.13.19:22:38& add error param here>
       }
 
@@ -99,11 +99,11 @@ class History
 
 
    def processCheckbox(checked:Boolean, commitId:RevCommit) =
-   {  println("processCheckbox called")
-      println("   commit id = " + commitId.name )
-      println("   commit time = " + commitId.getCommitTime().toString)
+   {  log("processCheckbox called")
+      log("   commit id = " + commitId.name )
+      log("   commit time = " + commitId.getCommitTime().toString)
       if( checked )
-      {  println("   checkbox of commit is checked by user.")
+      {  log("   checkbox of commit is checked by user.")
          checkedCommits = commitId::checkedCommits
       }
    }

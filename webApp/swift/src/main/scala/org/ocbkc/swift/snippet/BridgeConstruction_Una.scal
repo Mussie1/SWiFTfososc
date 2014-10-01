@@ -10,7 +10,7 @@ import _root_.java.util.Date
 import org.ocbkc.swift.lib._
 import org.ocbkc.swift.model.Player
 import Helpers._
-import System.err.println
+import System.err.log
 import org.ocbkc.swift.global.GlobalConstant._
 import org.ocbkc.swift.global.TestSettings._
 import org.ocbkc.swift.parser._
@@ -38,7 +38,7 @@ class BridgeConstruction
          S.redirectTo("TODOpageCorrespondingWithLatestRoundFluencySession")
       
       def processSubmission() = 
-      {  println("BridgeConstruction.processSubmission called")
+      {  log("BridgeConstruction.processSubmission called")
          
          // check errors on submission here
          
@@ -50,10 +50,10 @@ class BridgeConstruction
                                           }
          }
          
-         println("   bridgeCorrect = " + bridgeCorrect)
+         log("   bridgeCorrect = " + bridgeCorrect)
          // sesCoord
          // <&y2011.10.23.17:49:39&>
-         println("   bridge = " + sesCoordLR.si.bridgeCTL2NLplayer)
+         log("   bridge = " + sesCoordLR.si.bridgeCTL2NLplayer)
          
          sesCoord.URstopBridgeConstruction
          
@@ -64,7 +64,7 @@ class BridgeConstruction
       {  // <&y2012.02.10.10:08:37& check here whether the provided subject indeed occurs in the CTL translation of the player. This requires an additional function in the clean part!>
          // ( importance=10
          // )
-         println("BridgeConstruction.processSubjectPlayerTf called")
+         log("BridgeConstruction.processSubjectPlayerTf called")
          sesBriCo.subjectTf = contentTf
          sesCoordLR.si.bridgeCTL2NLplayer = "" // <&y2012.02.21.09:35:55&09:35:55 right location to do this?>
 
@@ -74,13 +74,13 @@ class BridgeConstruction
 
       def processPredicatePlayerTf(contentTf:String) = 
       {  // <&y2012.02.10.10:09:24& check here whether the provided prediate indeed occurs in the CTL translation of player>
-         println("BridgeConstruction.processPredicatePlayerTf called")
+         log("BridgeConstruction.processPredicatePlayerTf called")
          sesBriCoLR.predicateTf = contentTf
          sesCoordLR.si.bridgeCTL2NLplayer += "hurelan(" + sesCoordLR.si.hurelanRole1NL + "," + contentTf + "," + sesCoordLR.si.hurelanRole2NL + ")\n"
       }
       
       def processTestBridgeBt() =
-      {  println("BridgeConstruction.processTestBridgeBt called")
+      {  log("BridgeConstruction.processTestBridgeBt called")
          // <&y2012.01.19.09:56:18& is processTranslationTA indeed called before this method, otherwise I have a problem...>/(importance = 10)
           S.redirectTo("translationRound.html")
       }
@@ -127,7 +127,7 @@ class BridgeConstruction
 
       val toBeBoundInTheBindFunction = sesCoordLR.si.constantsByPlayer match 
                                              {  case Some(constants) => SHtml.ajaxSelectElem(constants, Empty)(processPredicatePlayerTf)
-                                                case None            => println("   No constants found in translation player."); Text("Your translation doesn't contain any constants")
+                                                case None            => log("   No constants found in translation player."); Text("Your translation doesn't contain any constants")
                                              }
 
 
@@ -137,7 +137,7 @@ class BridgeConstruction
 
       val constants = sesCoordLR.si.constantsByPlayer match 
                                              {  case Some(consts) => consts
-                                                case None         => println("   No constants found in translation player."); Nil
+                                                case None         => log("   No constants found in translation player."); Nil
                                              }
 
       var boundForm = bind( "form", ns, 
@@ -145,7 +145,7 @@ class BridgeConstruction
             //"subjectCTLbyPlayer"        -> SHtml.text(sesBriCo.subjectTf, processSubjectPlayerTf),
             "subjectCTLbyPlayer"          -> SHtml.select(constants.map(c=>(c,c)), Empty, processSubjectPlayerTf),
             "predicateCTLbyPlayer"        -> ( sesCoordLR.si.predsByPlayer match 
-                                             {  case Some(Nil)       => println("   No constants found in translation player."); Text("Note: your translation doesn't contain any predicates.")
+                                             {  case Some(Nil)       => log("   No constants found in translation player."); Text("Note: your translation doesn't contain any predicates.")
 
                                                 case Some(preds)     => SHtml.select(preds.map(p=>(p,p)), Empty, processPredicatePlayerTf)
                                                 case None            => throw new RuntimeException("   Error during parsing of CTL text player, should not happen in this stage.")

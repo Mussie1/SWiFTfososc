@@ -47,7 +47,7 @@ class AdminPage
    //JsonCmd(2,null,false,Map(command -> 2, params -> false))
 
    var n_blaat = JaraDur.is 
-   // println(lines)
+   // log(lines)
 	 
 		
    def settings =
@@ -58,7 +58,7 @@ class AdminPage
    {  def apply(in: Any): JsCmd =
       {  in match 
          {  case JsonCmd("submit", _, p: String, _) => 
-            {  println(p)
+            {  log(p)
 	       SetHtml("jararesult",Text("Running Simulation.."));
 	       JaraDur.set(p)
                GlobalConstant.clearAndReinitialiseSWiFTdatabase

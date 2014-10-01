@@ -72,13 +72,13 @@ class BridgeConstruction
       sesCoordLR.URstartBridgeConstruction
       
       def processSubmission() = 
-      {  println("efe.BridgeConstruction.processSubmission called")
+      {  log("efe.BridgeConstruction.processSubmission called")
          
          // check errors on submission here
          
          // sesCoord
 
-         println("   bridge = " + sesCoordLR.si.bridgeCTL2NLplayer)
+         log("   bridge = " + sesCoordLR.si.bridgeCTL2NLplayer)
          
          SesCoord.URstopBridgeConstruction
          

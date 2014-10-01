@@ -21,7 +21,7 @@ class PlayerStats
 {  val sesCoordLR = SesCoord.is // extract session coordinator object from session variable.
 
    def render(ns: NodeSeq): NodeSeq =
-   {  println("Playerstats.render called")
+   {  log("Playerstats.render called")
       val player = sesCoordLR.currentPlayer
       implicit val displayAsNoneAs = "not applicable"
       bind( "top", ns, 

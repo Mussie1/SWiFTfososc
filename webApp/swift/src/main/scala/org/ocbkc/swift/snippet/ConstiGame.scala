@@ -25,14 +25,14 @@ class ConstiGameTable
 
    def buildCollaborationConstiTable(ns: NodeSeq):NodeSeq = {
       // Calls bind repeatedly, once for each Constitution that is followed
-      println("buildCollaborationConstiTable called")
+      log("buildCollaborationConstiTable called")
       val df = new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm")
       implicit val displayNoneAs = "-"
       val followedConstis = sesCoordLR.currentPlayer.followedConstis
       val tableRowsTemplate = chooseTemplate("top", "tableRows", ns)
       
-      println("   tableRowsTemplate = " + tableRowsTemplate)
-      println("   number of followed constis = " + followedConstis.size)
+      log("   tableRowsTemplate = " + tableRowsTemplate)
+      log("   number of followed constis = " + followedConstis.size)
       followedConstis.flatMap{ constiId
       => {  val c = Constitution.getById(constiId).get // .get, because SHOULD always exist, otherwise some other bug exists.
             bind("constiColumn", tableRowsTemplate,

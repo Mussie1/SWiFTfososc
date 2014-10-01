@@ -21,7 +21,7 @@ class QuestionAttackRound
    {  var playerAnswerTF = ""
 
       def processSubmission() = 
-      {  println("processSubmission called")
+      {  log("processSubmission called")
          // <&y2011.11.08.18:54:41& check errors on submission here>
          S.redirectTo("algorithmicDefenceRound.html") 
       }  

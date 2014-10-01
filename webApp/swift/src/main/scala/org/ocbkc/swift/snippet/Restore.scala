@@ -25,11 +25,11 @@ object Error extends Enumeration {
 }
 */
 class Restore
-{  println("Restore constructor called")
+{  log("Restore constructor called")
    val const:Constitution = S.param("constid") match
    {  case Full(idLoc)  => Constitution.getById(idLoc.toInt) match
                            { case Some(constLoc)   => 
-						     {  println("   Constitution id:" + idLoc); constLoc 
+						     {  log("   Constitution id:" + idLoc); constLoc 
 						     }
                              case None             => 
   						     {  S.redirectTo("notfound.html") 
@@ -45,7 +45,7 @@ class Restore
 
    val commit:RevCommit = JgitUtils.revComFromCommitId(commitId).getOrElse(S.redirectTo("constitutions"))
 
-   println("   commitid = " + commitId)
+   log("   commitid = " + commitId)
 
    // Try restoring
    val currentUserId:Int = Player.currentUserId match // <&y2012.06.23.14:41:16& refactor: put currentuserid in session var, and use that throughout the session-code>
@@ -56,11 +56,11 @@ class Restore
 			  { throw new RuntimeException("  No user id found.") 
 			  }
       }
-   println("   Trying to restore...")
+   log("   Trying to restore...")
    const.restore(commitId, currentUserId.toString) 
 
    def render(ns: NodeSeq): NodeSeq =
-   {  println("Restore.render")
+   {  log("Restore.render")
      
       val answer   = bind( "top", ns, 
                            "publicationDate"    -> Text(commit.getCommitTime.toString),

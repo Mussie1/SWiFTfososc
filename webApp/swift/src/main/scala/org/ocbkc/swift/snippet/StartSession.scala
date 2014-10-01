@@ -35,9 +35,9 @@ class StartSession
    {  //var playerAnswerTF = ""
       
       // Begin For test remove
-      println("### begin serialization test")
+      log("### begin serialization test")
       val query = Sharpest(NumResPat(Geq, PatVar("n"), Var("x"), PredApp(Predicate("predje",2),List(Constant("a"), Var("x")))))
-      println("   query serialized: " + query.serialize)
+      log("   query serialized: " + query.serialize)
       
       /*
       //import net.liftweb.json._
@@ -57,10 +57,10 @@ class StartSession
 
       val scalaInstance = Dummy(CaseClass1("c1"))
       val serializedTestA = write(scalaInstance)
-      println("   serialized " + scalaInstance + " to:" + serializedTestA)
+      log("   serialized " + scalaInstance + " to:" + serializedTestA)
 
       val deserializedTestA = read[Dummy](serializedTestA)
-      println("   deserialized again to " + deserializedTestA)
+      log("   deserialized again to " + deserializedTestA)
 
       // Test B with superclass // <&y2012.05.18.11:19:09& ask on lift forum why this doesn't work (the name of the caseclasses is not expressed)>
       sealed class TestBSuperClass(val name:String) 
@@ -72,7 +72,7 @@ class StartSession
       case class TestBDummy(constant:TestBCaseClass1)
 
       val testb = TestBDummy(TestBCaseClass1("c1"))
-      println("   serialized " + testb + " to:" + write(testb))
+      log("   serialized " + testb + " to:" + write(testb))
       */
       log("### end serialization test")
 

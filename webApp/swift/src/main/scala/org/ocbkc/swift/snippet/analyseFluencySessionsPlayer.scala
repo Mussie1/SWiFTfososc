@@ -69,7 +69,7 @@ class analyseFluencySessionsPlayer {
   { S.param("player_id") match
     { case Full(player_id) =>
       { val msgStart = "Input player_ID: " + player_id
-        //println(Player.find(By(Player.id, player_id.toLong)))
+        //log(Player.find(By(Player.id, player_id.toLong)))
 
         val player = Player.find(By(Player.id, player_id.toLong))
 

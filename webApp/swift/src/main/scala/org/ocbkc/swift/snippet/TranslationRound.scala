@@ -41,7 +41,7 @@ class TranslationRound
          
          // sesCoord
          // <&y2011.10.23.17:49:39&>
-         println("TranslationRound.processSubmission: translation = " + sesCoordLR.si.textCTLbyPlayer)
+         log("TranslationRound.processSubmission: translation = " + sesCoordLR.si.textCTLbyPlayer)
          log("[BUG]? URstopTranslation also when there are errors???") 
          SesCoord.URstopTranslation
          
@@ -52,7 +52,7 @@ class TranslationRound
       }
 
       def processTestTransBt() =
-      {  println("processTestTransBt called")
+      {  log("processTestTransBt called")
          // <&y2012.01.19.09:56:18& is processTranslationTA indeed called before this method, otherwise I have a problem...>/(importance = 10)
           S.redirectTo("translationRound.html")
       }
@@ -63,9 +63,9 @@ class TranslationRound
          // test
          val a = Player.currentUserId
          if(a.isEmpty)
-            println("   no currentUserId:")
+            log("   no currentUserId:")
          else
-            println("   currentUserId = " + a.open_!)
+            log("   currentUserId = " + a.open_!)
       }
 
       // <&y2012.02.26.01:34:10& perhaps more elegant to make use of built-in parser of SessionInfo>

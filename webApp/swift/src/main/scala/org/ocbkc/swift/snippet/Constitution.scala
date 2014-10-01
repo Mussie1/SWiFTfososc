@@ -42,7 +42,7 @@ case class ContentB4Reload(val constitutionTAcontent:String, val descriptionTFco
   */
 
 class ConstitutionSnippet
-{  println("ConstitutionSnippet constructor called")
+{  log("ConstitutionSnippet constructor called")
    val sesCoordLR = SesCoord.is // extract session coordinator object from session variable.
    var constitutionTAcontent:String = ""
    var descriptionTFcontent:String = ""
@@ -51,10 +51,10 @@ class ConstitutionSnippet
    object ContentB4ReloadRequestVar extends RequestVar[Option[ContentB4Reload]](None)
    object ErrorRequestVar extends RequestVar[List[Error]](Nil)
    val errorsLR = ErrorRequestVar.is // extract errors list from request var
-   println("   errorsLR = "  + errorsLR)
+   log("   errorsLR = "  + errorsLR)
    val contentB4ReloadOpt = ContentB4ReloadRequestVar.is
-   println("   contentB4ReloadOpt = " + contentB4ReloadOpt )
-   println("   find noPublishDescriptionError command gives: " + errorsLR.find( { case _:NoPublishDescriptionError => true; case _  => false } ) )
+   log("   contentB4ReloadOpt = " + contentB4ReloadOpt )
+   log("   find noPublishDescriptionError command gives: " + errorsLR.find( { case _:NoPublishDescriptionError => true; case _  => false } ) )
    val currentUserId:Long = Player.currentUserId match // <&y2012.06.23.14:41:16& refactor: put currentuserid in session var, and use that throughout the session-code>
       {  case Full(id)  => { id.toLong }
          case _         => { logAndThrow("  No user id found.") }
@@ -62,7 +62,7 @@ class ConstitutionSnippet
    var editmode = false
 
    def render(ns: NodeSeq): NodeSeq =
-   {  println("ConstitutionSnippet.render")
+   {  log("ConstitutionSnippet.render")
       def processEditBtn(constiId:Int) =
       {  S.redirectTo("constitution?id=" + constiId + "&edit=true")
       }
@@ -78,10 +78,10 @@ class ConstitutionSnippet
 /* &y2013.01.27.18:57:58& Still needed? 
 
       def updateConstitutionContent(const:Constitution) =
-      {  println("updateConstitutionContent called")
+      {  log("updateConstitutionContent called")
          var changes:Boolean = false
          if( const.plainContent.equals( constitutionTAcontent ) ) // <&y2012.06.27.12:59:21& refactor using javascript? So that you can see at the client whether someone has started typing, and thus has made a change. The current solution is computationally far more expensive.> 
-         {  println("   No changes in constitution body.")
+         {  log("   No changes in constitution body.")
          }
          else
          {  const.save(constitutionTAcontent)
@@ -89,7 +89,7 @@ class ConstitutionSnippet
          }
          
          if( const.shortDescription.equals(descriptionTFcontent) )
-         {  println("   No changes in description.")
+         {  log("   No changes in description.")
          }
          else
          {  const.shortDescription = descriptionTFcontent
@@ -104,7 +104,7 @@ class ConstitutionSnippet
 
 /*  <&y2012.07.29.14:31:05& perhaps for future version allow intermediate changes (not yet published)
       def processSaveBtn() =
-      {  println("processSaveBtn called")
+      {  log("processSaveBtn called")
          if( const.isDefined )
          {  val constLoc = const.get
             updateConstitutionContent(constLoc)
@@ -124,7 +124,7 @@ class ConstitutionSnippet
 
 
       def processGeneralSaveBtn() =
-      {  println("processGeneralSaveBtn called")
+      {  log("processGeneralSaveBtn called")
          if( const.isDefined )
          {  val constLoc = const.get
             /*
@@ -164,13 +164,13 @@ class ConstitutionSnippet
       }
 
       def processPublishBtn() = 
-      {  println("ConstitutionSnippet.processPublishBtn called")
+      {  log("ConstitutionSnippet.processPublishBtn called")
          val contB4Rel = ContentB4Reload(constitutionTAcontent, descriptionTFcontent, publishDescriptionTAcontent)
          var errors:List[Error] = Nil
          if( const.isDefined ) // <&y2012.06.30.19:41:13& SHOULDDO: and only if something changed (you can probably check this with jgit)>
          {  val constLoc = const.get
             if( publishDescriptionTAcontent.equals("") ) // <&y2012.07.01.19:01:51& MUSTDO: or only containing white space characters>
-            {  println("   no publish description found, give feedback to player (s)he should provide one!")
+            {  log("   no publish description found, give feedback to player (s)he should provide one!")
                errors = NoPublishDescriptionError() :: errors
             }
             else
@@ -179,7 +179,7 @@ class ConstitutionSnippet
                {  case constLoc.XMLandErr(Some(xml), _) =>
                   {  SesCoord.URpublishConsti(constLoc, constitutionTAcontent, publishDescriptionTAcontent)
                   }
-                  case constLoc.XMLandErr(None, saxParseExeception)  => { println("   Error in html: " + saxParseExeception.getMessage); errors = ErrorInHtml(saxParseExeception) :: errors }
+                  case constLoc.XMLandErr(None, saxParseExeception)  => { log("   Error in html: " + saxParseExeception.getMessage); errors = ErrorInHtml(saxParseExeception) :: errors }
                }
             }
             S.redirectTo("constitution?id=" + constLoc.constiId + "&edit=true#kippetje", () => (ErrorRequestVar( errors ), ContentB4ReloadRequestVar(Some(contB4Rel))))
@@ -217,7 +217,7 @@ class ConstitutionSnippet
             {  sesCoordLR.removeFollower(sesCoordLR.currentPlayer, constLoc )
                // <&y2012.06.27.14:00:21& send mail to unfollower to confirm.>
             } else
-            {  println("   update mail to " + currentUserId + " not necessary: follower status unchanged.")
+            {  log("   update mail to " + currentUserId + " not necessary: follower status unchanged.")
             }
          }
       }
@@ -227,7 +227,7 @@ class ConstitutionSnippet
       val (errorRetrievingConstitution:Boolean, errorMsg:String, creatorId:Long, creationDate:Long, title:String) = S.param("id") match
       {  case Full(idLoc)  => Constitution.getById(idLoc.toInt) match
                               {  case Some(constLoc2) =>
-                                 {  println("   Constitution id:" + idLoc)
+                                 {  log("   Constitution id:" + idLoc)
                                     constLoc = constLoc2
                                     creator = Player.find(constLoc.creatorUserID) match
                                     {  case Full(player)  => player
@@ -253,13 +253,13 @@ class ConstitutionSnippet
                                                     }, processConstitutionTA, "rows" -> "10", "style" -> "width: 99%;", "id" -> "edit" 
                                                   )
       editmode = S.param("edit") match // <&y2012.06.05.10:33:56& how html parameters simply look if parameter exists, I want to do: if edit param is in then edit>
-      {  case Full(pval) => { println("edit url param = " + pval); pval.equals("true") }
+      {  case Full(pval) => { log("edit url param = " + pval); pval.equals("true") }
          case _          => false
       }
 
 
       val firstEdit = S.param("firstedit") match
-      {  case Full(pval) => { println("firstedit url param = " + pval); pval.equals("true") }
+      {  case Full(pval) => { log("firstedit url param = " + pval); pval.equals("true") }
          case _          => false
       } // < &y2012.06.10.17:37:17& I think it is better to do this differently: do not create the constitution as yet, but do this after the first save. Danger of current approach is that if someone's session crashes, the constitution continues to exist.>
      
@@ -267,8 +267,8 @@ class ConstitutionSnippet
       implicit val displayIfNone = "-"
       val fluencyScoreOpt = ConstiScores.averageFluencyLatestReleaseWithScore( constLoc.constiId )
       val latestReleaseIdOpt = fluencyScoreOpt.collect{ case (id,_) => id }
-      println("CURRENTUSERID::");
-	println(constLoc.followers.contains(currentUserId));
+      log("CURRENTUSERID::");
+	log(constLoc.followers.contains(currentUserId));
       val answer   = bind( "top", ns, 
                            "revisionHistory"    -> SHtml.button("History", processHistoryBtn),
                            "analyseScores"    -> SHtml.button("Analyse Scores", analyseScoresBtn),
@@ -288,7 +288,7 @@ class ConstitutionSnippet
                                                             "cancelBt" -> SHtml.button("Cancel", () => processCancelBtn(constLoc, firstEdit)),
                                                             //"saveBt" -> SHtml.button("Save", () => processSaveBtn),
                                                             "descriptionTextfield" -> SHtml.text(contentB4ReloadOpt match { case Some(cB4rl) => cB4rl.descriptionTFcontent; case None => constLoc.shortDescription }, processDescriptionTf, "style" -> "width: 99%;"),
-                                                            "noPublishDescriptionError" -> { if( errorsLR.find( { case _:NoPublishDescriptionError => true; case _  => false } ).isDefined) { println("   player forgot publish description, naughty boy."); <font color="red" ><b>ERROR: PROVIDE</b></font> } else { println("   player provided publish description: good good boy."); emptyNode } },
+                                                            "noPublishDescriptionError" -> { if( errorsLR.find( { case _:NoPublishDescriptionError => true; case _  => false } ).isDefined) { log("   player forgot publish description, naughty boy."); <font color="red" ><b>ERROR: PROVIDE</b></font> } else { log("   player provided publish description: good good boy."); emptyNode } },
                                                             "errorInHtml" -> { errHtml match 
                                                                               {  case Some(ErrorInHtml(e))  => <font color="red"><b>{ "COULD NOT PUBLISH:\nError on line " + e.getLineNumber + ", at character " + e.getColumnNumber + ": " + e.getMessage }</b></font>
                                                                                  case None                  => emptyNode

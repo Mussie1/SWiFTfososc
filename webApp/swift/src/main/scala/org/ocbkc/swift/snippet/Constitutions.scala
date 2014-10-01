@@ -60,14 +60,14 @@ class Constitutions
             )
             // <&y2012.05.28.12:13:54& perhaps more elegant to refer to constitutions by using a html-parameter>
             // <&y2012.06.29.22:54:28& COULDDO optimise sorting function, by doing it only once, it is now done everytime.>
-            println("   doc = " + doc)
+            log("   doc = " + doc)
             //XML.loadString(doc)
             doc
          }
       }
       
       def processCreateNewBt() =
-      {  println("Constitutions.processCreateNewBt called")
+      {  log("Constitutions.processCreateNewBt called")
          val const:Constitution = Player.currentUserId match
          {  case Full(id)  => {  val c = Constitution.create(id.toLong)
                                  c.initialiseNew

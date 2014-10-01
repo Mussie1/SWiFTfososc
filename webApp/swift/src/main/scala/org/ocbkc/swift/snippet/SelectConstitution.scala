@@ -19,18 +19,18 @@ import org.ocbkc.swift.global._
 import org.ocbkc.swift.global.Logging._
 
 class SelectConstitution
-{  println("Constructor SelectConstitution called")
+{  log("Constructor SelectConstitution called")
    val sesCoordLR = SesCoord.is // extract session coordinator object from session variable.
    val player = sesCoordLR.currentPlayer
 
    // if the URL contains an id for a constitution, then the choice has been made. So redirect to studyConstitution. Direct redirection ot studuConstitution after the choice cannot be done, because first790623 the field firstChosenConstitution has to be set right, so that SiteMap (see Boot.scala) gives the user access to the studyConstitution link.
    S.param("id") match
-   {  case Full(idLoc)  => {  println("   URL parameter id = " + idLoc)
+   {  case Full(idLoc)  => {  log("   URL parameter id = " + idLoc)
                               val consti = Constitution.getById(idLoc.toInt) 
                               consti match
                               { case Some(constLoc)   => {  log("   Found constitution with this id" )
                                                             sesCoordLR.URchooseFirstConstitution(constLoc.constiId)
-                                                            println("   now redirecting player to studyConstitution")
+                                                            log("   now redirecting player to studyConstitution")
                                                             S.redirectTo("/studyConstitution")
                                                          }
                                 case None             => { S.redirectTo("notfound") 
@@ -93,7 +93,7 @@ class SelectConstitution
             )
             // <&y2012.05.28.12:13:54& perhaps more elegant to refer to constitutions by using a html-parameter>
             // <&y2012.06.29.22:54:28& COULDDO optimise sorting function, by doing it only once, it is now done everytime.>
-            println("   doc = " + doc)
+            log("   doc = " + doc)
             //XML.loadString(doc)
             doc
          }

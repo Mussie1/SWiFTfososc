@@ -40,10 +40,10 @@ class StudyConsti__EMBED
 
          S.param("id") match
          {  case Full(idLoc)  => Constitution.getById(idLoc.toInt) match
-                                 { case Some(constLoc)   => { println("   Constitution id:" + idLoc); SesCoord.firstChosenConstitution = Some(constLoc); constLoc }
-                                   case None             => { println("   BUG: constitution with id " + idLoc + " not found"); S.redirectTo("notfound") }
+                                 { case Some(constLoc)   => { log("   Constitution id:" + idLoc); SesCoord.firstChosenConstitution = Some(constLoc); constLoc }
+                                   case None             => { log("   BUG: constitution with id " + idLoc + " not found"); S.redirectTo("notfound") }
                                  }
-            case _            => { println("   BUG: no id URL-parameter in studyConstitution.html given"); S.redirectTo("errorIdNotFound") }
+            case _            => { log("   BUG: no id URL-parameter in studyConstitution.html given"); S.redirectTo("errorIdNotFound") }
 */
 
   val currentUserId:Int = Player.currentUserId match // <&y2012.06.23.14:41:16& refactor: put currentuserid in session var, and use that throughout the session-code>

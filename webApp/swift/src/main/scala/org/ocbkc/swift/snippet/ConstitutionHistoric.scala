@@ -17,12 +17,12 @@ import org.ocbkc.swift.coord.ses._
 
 
 class ConstitutionHistoric
-{  println("ConstitutionHistoric constructor called")
+{  log("ConstitutionHistoric constructor called")
    val sesCoordLR = SesCoord.is // extract session coordinator object from session variable.
 
    val const:Constitution = S.param("constid") match
    {  case Full(idLoc)  => Constitution.getById(idLoc.toInt) match
-                           { case Some(constLoc)   => { println("   Constitution id:" + idLoc); constLoc }
+                           { case Some(constLoc)   => { log("   Constitution id:" + idLoc); constLoc }
                              case None             => { S.redirectTo("notfound") }
                            }
       case _            => S.redirectTo("constitutions") 
@@ -49,7 +49,7 @@ class ConstitutionHistoric
    }
 */
    def render(ns: NodeSeq): NodeSeq =
-   {  println("ConstitutionHistoric.render")
+   {  log("ConstitutionHistoric.render")
       val emptyNode = <div></div> // <&y2012.06.02.18:53:13& nicer way of defining empty substitution?>
 
       var constLoc:Constitution = null // workaround for tuple error, note (object:ClassA, ..) = (null, ...) leads to match error in scala.
@@ -64,7 +64,7 @@ class ConstitutionHistoric
                            "creator"            -> Text(
                                        Player.find(const.creatorUserID) match
                                        {  case Full(player)  => player.swiftDisplayName
-                                          case _             => { println("    bug: Player with id " + const.creatorUserID + " not found."); "player unknown (this is a bug, please report it)." }
+                                          case _             => { log("    bug: Player with id " + const.creatorUserID + " not found."); "player unknown (this is a bug, please report it)." }
                                        }
                                                        )
 

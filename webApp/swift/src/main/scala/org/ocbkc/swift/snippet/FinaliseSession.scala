@@ -22,7 +22,7 @@ class FinaliseSession
       sesCoordLR.URfinaliseSession
       
       def processSubmission() = 
-      {  println("processSubmission called")
+      {  log("processSubmission called")
          // check errors on submission here
          // <&y2011.10.24.17:27:52&>
          sesCoordLR.closeSession
